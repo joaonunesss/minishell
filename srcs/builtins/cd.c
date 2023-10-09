@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:31:45 by ataboada          #+#    #+#             */
-/*   Updated: 2023/09/28 17:01:11 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/09 17:46:35 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,4 +35,6 @@ void	ft_cd(t_minishell *ms)
 	ft_update_env(&ms->env_lst, "OLDPWD", ft_strdup(currentdir));
 	getcwd(currentdir, sizeof(currentdir));
 	ft_update_env(&ms->env_lst, "PWD", ft_strdup(currentdir));
+	if (ms->n_pipes != 0)
+		exit(0);
 }

@@ -6,21 +6,48 @@
 /*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/05 10:49:32 by ataboada          #+#    #+#             */
-/*   Updated: 2023/09/25 19:35:37 by ataboada         ###   ########.fr       */
+/*   Updated: 2023/10/02 10:04:26 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-int	ft_command_table_creator(t_minishell *ms);
-int	ft_command_table_helper(t_minishell *ms);
+int		ft_command_table_creator(t_minishell *ms);
+int		ft_command_table_helper(t_minishell *ms);
 
 /*
-	This is where the command table will be created.
-	It will be a linked list of t_cmd structures. Each t_cmd structure will have the command name, its arguments and its associated redirections.
-	We will first separate our T_OTHER tokens into T_COMMAND and T_FILE tokens.
-	Then, we will create the command table.
-	Remember: if the expanded variable doesn't exist, it will be called T_EMPTY.
+	Here is where we build the final step of the parser, the command table. The command table was created thinking about the execution of the program, so it has a format that will help us use the execve function later.
+
+	First step: update the tokenizer, separating the T_OTHER tokens into T_COMMAND, T_FILE_IN, T_FILE_TRUNC, T_FILE_APPEND and T_DELIMITER.
+	For example:
+		input: ls -l | wc -l > a.txt
+		|--------------------------------|
+		| token | content |     type     |
+		|-------|---------|--------------|
+		|   1   |   ls    | T_COMMAND    |
+		|   2   |   -l    | T_COMMAND    |
+		|   3   |    |    | T_PIPE       |
+		|   4   |   wc    | T_COMMAND    |
+		|   5   |   -l    | T_COMMAND    |
+		|   6   |    >    | T_REDIR_OUT  |
+		|   7   |  a.txt  | T_FILE_TRUNC |
+		|_______|_________|______________|
+
+	Second step: separate it all into commands.
+	For example:
+		input: ls - l > a.txt | sort << A << B > b.txt
+		|--------------------------------|
+		| cmd_number |    1    |    2    |
+		|------------|---------|---------|
+		|    cmd     |    ls   |  sort   |
+		|    args    | ls, -l  |  sort   |
+		|  file_in   |   NULL  |  NULL   |
+		|  file_tr   |  a.txt  |  b.txt  |
+		|  file_ap   |   NULL  |  NULL   |
+		|  heredoc  |   NULL  |  A, B   |
+		|____________|_________|_________|
+
+	Remember: if the expanded variable doesn't exist, it will be called T_EMPTY, and it should be ignored.
 */
 
 int	ft_command_table_creator(t_minishell *ms)
@@ -44,8 +71,8 @@ int	ft_command_table_creator(t_minishell *ms)
 			curr->next->type = T_COMMAND;
 		curr = curr->next;
 	}
-	if (ft_command_table_helper(ms) == ERROR_FOUND)
-		return (EXIT_FAILURE);
+	if (ft_command_table_helper(ms) == EXIT_NO_CMD)
+		return (EXIT_NO_CMD);
 	return (EXIT_SUCCESS);
 }
 
@@ -69,7 +96,7 @@ int	ft_command_table_helper(t_minishell *ms)
 				curr = curr->next;
 			}
 			if (n_args == 1 && ms->token_lst->type == T_EMPTY)
-				return (EXIT_FAILURE);
+				return (EXIT_NO_CMD);
 			ft_add_cmd_back(&ms->cmd_lst, ft_new_cmd(first_cmd, n_args));
 		}
 		else

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe_0.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/28 14:55:03 by ataboada          #+#    #+#             */
-/*   Updated: 2023/08/28 15:14:55 by ataboada         ###   ########.fr       */
+/*   Updated: 2023/10/09 16:46:56 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 
 int main(void)
 {
+	int a = 5;
+
 	// creation of the pipe
 	int pipefd[2];
 	if (pipe(pipefd) == -1)

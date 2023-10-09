@@ -42,7 +42,10 @@ SRCS = srcs/main.c \
 		srcs/utils/main_utils.c \
 		srcs/utils/parsing_utils.c \
 		srcs/utils/execution_utils.c \
+		srcs/utils/free_utils.c \
 		srcs/utils/builtins_utils.c \
+		srcs/signals/signal.c \
+		srcs/signals/handlers.c \
 
 S_OBJS = $(SRCS:.c=.o)
 

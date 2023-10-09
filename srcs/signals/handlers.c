@@ -1,33 +1,41 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   env.c                                              :+:      :+:    :+:   */
+/*   handlers.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/08 09:33:11 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/09 16:12:49 by jmarinho         ###   ########.fr       */
+/*   Created: 2023/10/06 16:01:57 by jmarinho          #+#    #+#             */
+/*   Updated: 2023/10/06 17:12:45 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-int	g_exit_status;
-
-void	ft_env(t_minishell *ms)
+void	ft_handler_sigint(int signum)
 {
-	t_env	*envi;
+	if (signum != SIGINT)
+		return ;
+	rl_replace_line("", 0);
+	printf("\n");
+	rl_on_new_line();
+	rl_redisplay();
+	g_exit_status = 130;
+}
 
-	envi = ms->env_lst;
-	while (envi)
-	{
-		printf("%s=%s\n", envi->key, envi->value);
-		envi = envi->next;
-	}
-	g_exit_status = 0;
-	if(ms->n_pipes > 0)
-		ft_free_pipes(ms);
-	ft_free_all(ms, YES);
-	if (ms->n_pipes == 0)
-		exit(0);
+void	ft_handler_heredoc(int signum)
+{
+	if (signum != SIGINT)
+		return ;
+	printf("\n");
+	g_exit_status = 130;
+}
+
+void	ft_handler_child(int signum)
+{
+	if (signum == SIGINT)
+		return ;
+	else if (signum == SIGQUIT)
+		ft_exit(NULL);
+	g_exit_status = 128 + signum;
 }

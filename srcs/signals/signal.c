@@ -1,33 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   env.c                                              :+:      :+:    :+:   */
+/*   signal.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/08 09:33:11 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/09 16:12:49 by jmarinho         ###   ########.fr       */
+/*   Created: 2023/10/06 15:57:17 by jmarinho          #+#    #+#             */
+/*   Updated: 2023/10/09 13:24:40 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-int	g_exit_status;
-
-void	ft_env(t_minishell *ms)
+void	ft_signals_heredoc(void)
 {
-	t_env	*envi;
-
-	envi = ms->env_lst;
-	while (envi)
-	{
-		printf("%s=%s\n", envi->key, envi->value);
-		envi = envi->next;
-	}
-	g_exit_status = 0;
-	if(ms->n_pipes > 0)
-		ft_free_pipes(ms);
-	ft_free_all(ms, YES);
-	if (ms->n_pipes == 0)
-		exit(0);
+	signal(SIGINT, ft_handler_heredoc);
+	signal(SIGQUIT, SIG_IGN);
 }
+
+void	ft_signals_child(void)
+{
+	signal(SIGINT, ft_handler_child);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+void	ft_signals(void)
+{
+	signal(SIGINT, ft_handler_sigint);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+// void	ft_signals_ignore(void)
+// {
+// 	signal(SIGINT, SIG_IGN);
+// 	signal(SIGQUIT, SIG_IGN);
+// }

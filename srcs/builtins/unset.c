@@ -3,17 +3,54 @@
 /*                                                        :::      ::::::::   */
 /*   unset.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:36:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/09/09 11:29:59 by ataboada         ###   ########.fr       */
+/*   Updated: 2023/10/09 17:46:43 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-void	ft_unset(t_minishell *ms, t_cmd *cmd_ptr)
+int	ft_strcmp(t_minishell *ms, t_env *envi)
 {
-	(void)ms;
-	printf("executing %s\n", cmd_ptr->cmd);
+	int i;
+	
+	i = 0;
+	while (ms->cmd_lst->args[1][i] && envi->key[i] && (ms->cmd_lst->args[1][i] == envi->key[i]))
+		i++;
+	if(ms->cmd_lst->args[1][i] == '=')
+		i--;
+	return((unsigned char)ms->cmd_lst->args[1][i] - (unsigned char)envi->key[i]);
+} 
+
+void	ft_unset(t_minishell *ms)
+{
+	int i;
+	t_env	*envi;
+	t_env	*prev;
+	
+	i = 0;
+	envi = ms->env_lst;
+	prev = NULL;
+	while(envi)
+	{
+		if (ft_strcmp(ms, envi) == 0)
+		{	
+			 if (prev == NULL)
+                ms->env_lst = envi->next;
+            else
+                prev->next = envi->next;
+			free(envi->key);
+			free(envi->value);
+			free(envi);
+			break;
+		}
+		prev = envi;
+        envi = envi->next;
+	}
+	// if (ft_strncmp(ms->cmd_lst->cmd, "export", 7) != 0)
+	// 	exit(0);
+	if (ms->n_pipes != 0)
+		exit(0);
 }

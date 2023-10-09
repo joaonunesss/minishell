@@ -6,17 +6,17 @@
 /*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/10 13:50:25 by ataboada          #+#    #+#             */
-/*   Updated: 2023/09/28 09:49:57 by ataboada         ###   ########.fr       */
+/*   Updated: 2023/10/02 10:25:18 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-void	ft_redir_handler(t_minishell *ms, t_cmd *curr);
+void	ft_handle_redir(t_minishell *ms, t_cmd *curr);
 void	ft_close_fds(t_cmd *curr);
-int		ft_heredoc_handler(t_minishell *ms, char *delimiter);
-void	ft_heredoc_creator(t_minishell *ms, char *delimiter);
-char	*ft_heredoc_expander(t_minishell *ms, char *line);
+int		ft_handle_heredoc(t_minishell *ms, char *delimiter);
+void	ft_create_heredoc(t_minishell *ms, char *delimiter);
+char	*ft_expand_heredoc(t_minishell *ms, char *line);
 
 /*
 	This is where we keep the functions that handle redirections and heredocs.
@@ -30,23 +30,24 @@ char	*ft_heredoc_expander(t_minishell *ms, char *line);
 			were in the heredoc.
 */
 
-void	ft_redir_handler(t_minishell *ms, t_cmd *curr)
+void	ft_handle_redir(t_minishell *ms, t_cmd *curr)
 {
-	if (curr->file_in)
-		curr->fd_in = open(curr->file_in, O_RDONLY);
-	if (curr->file_tr)
-		curr->fd_out = open(curr->file_tr, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (curr->heredoc)
-		curr->fd_in = ft_heredoc_handler(ms, curr->heredoc);
-	if (curr->file_ap)
-		curr->fd_out = open(curr->file_ap, O_WRONLY | O_CREAT | O_APPEND, 0644);
-	if (curr->fd_in < 0 || curr->fd_out < 0)
-		exit (ft_perror(ms, E_FILE, YES));
-	else
-	{
-		dup2(curr->fd_in, STDIN_FILENO);
-		dup2(curr->fd_out, STDOUT_FILENO);
-	}
+	int	i;
+
+	i = 0;
+	while (curr->file_in[i])
+		curr->fd_in = ft_perror_fd(ms, curr->file_in[i++], T_FILE_IN);
+	i = 0;
+	while (curr->file_tr[i])
+		curr->fd_out = ft_perror_fd(ms, curr->file_tr[i++], T_FILE_TRUNC);
+	i = 0;
+	while (curr->file_ap[i])
+		curr->fd_out = ft_perror_fd(ms, curr->file_ap[i++], T_FILE_APPEND);
+	i = 0;
+	while (curr->heredoc[i])
+		curr->fd_in = ft_handle_heredoc(ms, curr->heredoc[i++]);
+	dup2(curr->fd_in, STDIN_FILENO);
+	dup2(curr->fd_out, STDOUT_FILENO);
 }
 
 void	ft_close_fds(t_cmd *curr)
@@ -59,19 +60,19 @@ void	ft_close_fds(t_cmd *curr)
 	curr->fd_out = STDOUT_FILENO;
 }
 
-int	ft_heredoc_handler(t_minishell *ms, char *delimiter)
+int	ft_handle_heredoc(t_minishell *ms, char *delimiter)
 {
 	ms->pid_heredoc = fork();
 	if (ms->pid_heredoc < 0)
 		ft_perror(ms, E_FORK, YES);
 	else if (ms->pid_heredoc == 0)
-		ft_heredoc_creator(ms, delimiter);
+		ft_create_heredoc(ms, delimiter);
 	else
 		waitpid(ms->pid_heredoc, NULL, 0);
 	return (open(".heredoc", O_RDONLY));
 }
 
-void	ft_heredoc_creator(t_minishell *ms, char *delimiter)
+void	ft_create_heredoc(t_minishell *ms, char *delimiter)
 {
 	int		fd;
 	char	*line;
@@ -90,15 +91,17 @@ void	ft_heredoc_creator(t_minishell *ms, char *delimiter)
 			free(line);
 			break ;
 		}
-		line = ft_heredoc_expander(ms, line);
+		line = ft_expand_heredoc(ms, line);
 		ft_putendl_fd(line, fd);
 		free(line);
 	}
 	close(fd);
+	if (ms->n_pipes > 0)
+		ft_free_pipes(ms);
 	ft_free_all(ms, YES);
 }
 
-char	*ft_heredoc_expander(t_minishell *ms, char *line)
+char	*ft_expand_heredoc(t_minishell *ms, char *line)
 {
 	char	*tmp;
 	char	*key;
