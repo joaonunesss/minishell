@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/28 14:33:14 by jmarinho          #+#    #+#             */
-/*   Updated: 2023/10/09 17:41:13 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/10 18:10:21 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,25 +83,48 @@ void	ft_lstadd_back2(t_env *env_lst, t_env *new_envi)
 
 bool ft_not_forkable(t_minishell *ms)
 {
-    	if (ft_strncmp(ms->cmd_lst->cmd, "export", 7) == 0)
-		{
-			ft_export(ms);
+	t_token *token;
+
+	token = ms->token_lst;
+	while (token)
+	{
+		if (ft_strncmp(token->content, "<<", 3) == 0)
+			return (FALSE); 
+		token = token->next;
+	}
+	if (ft_strncmp(ms->cmd_lst->cmd, "export", 7) == 0)
+	{
+		ft_export(ms);
+		return (TRUE);
+	}
+	else if (ft_strncmp(ms->cmd_lst->cmd, "unset", 6) == 0)
+	{
+		ft_unset(ms);
+		return (TRUE);
+	}
+	else if (ft_strncmp(ms->cmd_lst->cmd, "cd", 3) == 0)
+	{
+		ft_cd(ms);
+		return (TRUE);
+	}
+	else if (ft_strncmp(ms->cmd_lst->cmd, "exit", 5) == 0)
+	{
+		ft_exit(ms);
+		return (TRUE);
+	}
+	return(FALSE);
+}
+
+bool is_there_redirections(t_minishell *ms)
+{
+	t_token *token;
+
+	token = ms->token_lst;
+	while (token)
+	{
+		if (ft_strncmp(token->content, "<<", 3) == 0)
 			return (TRUE);
-		}
-		else if (ft_strncmp(ms->cmd_lst->cmd, "unset", 6) == 0)
-		{
-			ft_unset(ms);
-			return (TRUE);
-		}
-		else if (ft_strncmp(ms->cmd_lst->cmd, "cd", 3) == 0)
-		{
-			ft_cd(ms);
-			return (TRUE);
-		}
-		else if (ft_strncmp(ms->cmd_lst->cmd, "exit", 5) == 0)
-		{
-			ft_exit(ms);
-			return (TRUE);
-		}
-		return(FALSE);
+		token = token->next;
+	}
+	return (FALSE);
 }

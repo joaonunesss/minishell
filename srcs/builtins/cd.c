@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:31:45 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/09 17:46:35 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/10 18:14:03 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,10 @@ void	ft_cd(t_minishell *ms)
 {
 	char	currentdir[200];
 	char	*old_dir;
-	
+	if(is_there_redirections(ms) == TRUE)
+	{
+		exit(0);
+	}
 	old_dir = ft_find_env(ms->env_lst, "OLDPWD");
 	getcwd(currentdir, sizeof(currentdir));
 	if (ms->cmd_lst->args[1] && ms->cmd_lst->args[1][0] != '~')

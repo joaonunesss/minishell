@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:36:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/09 17:46:43 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/10 18:17:33 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,8 @@ void	ft_unset(t_minishell *ms)
 	int i;
 	t_env	*envi;
 	t_env	*prev;
-	
+	if(is_there_redirections(ms) == TRUE)
+		exit(0);
 	i = 0;
 	envi = ms->env_lst;
 	prev = NULL;
@@ -49,8 +50,6 @@ void	ft_unset(t_minishell *ms)
 		prev = envi;
         envi = envi->next;
 	}
-	// if (ft_strncmp(ms->cmd_lst->cmd, "export", 7) != 0)
-	// 	exit(0);
 	if (ms->n_pipes != 0)
 		exit(0);
 }

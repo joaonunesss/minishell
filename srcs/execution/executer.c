@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:28:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/09 17:58:19 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/10 18:11:16 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,11 +47,12 @@ void	ft_executer(t_minishell *ms)
 	i = 0;
 	curr = ms->cmd_lst;
 	ms->n_pipes = ft_count_pipes(ms->cmd_lst);
-	printf("arg1 %s\n", ms->cmd_lst->args[1]);
 	if (ms->n_pipes == 0)
 	{
 		if (ft_not_forkable(ms) == FALSE)
-			ft_execute_only_cmd(ms, curr, curr->cmd);
+				ft_execute_only_cmd(ms, curr, curr->cmd);
+		if (ft_strncmp(ms->cmd_lst->cmd, "exit", 5) == 0 && is_there_redirections(ms) == TRUE)
+			exit(0);
 	}
 	else
 	{
@@ -59,14 +60,8 @@ void	ft_executer(t_minishell *ms)
 		ft_open_pipes(ms);
 		while (curr)
 		{
-			printf("curr cmd %s\n", curr->cmd);
-			if (ft_strncmp(curr->cmd, "exit", 5) == 0)
-				curr = curr->next;
-			else
-			{
-				ft_execute_mult_cmd(ms, curr, curr->cmd);
-				curr = curr->next;
-			} 
+			ft_execute_mult_cmd(ms, curr, curr->cmd);
+			curr = curr->next;
 		}
 		ft_close_pipes(ms);
 		while (i < ms->n_pipes + 1)
@@ -83,7 +78,7 @@ void	ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 		ft_perror(ms, E_FORK, YES);
 	else if (pid == 0)
 	{
-		if (ft_cmd_has_redir(curr) == YES)
+		if (ft_cmd_has_redir(curr) == TRUE)
 			ft_handle_redir(ms, curr);
 		ft_execute_cmd(ms, curr, cmd);
 		ft_close_fds(curr);
@@ -124,13 +119,13 @@ void	ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 		ft_pwd(ms);
 	else if (ft_strncmp(cmd, "env", 4) == 0)
 		ft_env(ms);
-	else if (ft_strncmp(ms->cmd_lst->cmd, "export", 7) == 0)
+	else if (ft_strncmp(cmd, "export", 7) == 0)
 		ft_export(ms);
-	else if (ft_strncmp(ms->cmd_lst->cmd, "unset", 6) == 0)
+	else if (ft_strncmp(cmd, "unset", 6) == 0)
 		ft_unset(ms);
-	else if (ft_strncmp(ms->cmd_lst->cmd, "cd", 3) == 0)
+	else if (ft_strncmp(cmd, "cd", 3) == 0)
 		ft_cd(ms);
-	else if (ft_strncmp(ms->cmd_lst->cmd, "exit", 5) == 0)
+	else if (ft_strncmp(cmd, "exit", 5) == 0)
 		ft_exit(ms);
 	else
 		ft_execute_external(ms, curr, cmd);

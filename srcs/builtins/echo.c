@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:32:41 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/09 16:13:00 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/10 18:14:34 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,11 @@ void	ft_echo(t_minishell *ms)
 {
 	int	i;
 	int	newline_flag;
-
+	if(is_there_redirections(ms) == TRUE)
+	{
+		printf("\n");
+		exit(0); 
+	}
 	i = 0;
 	newline_flag = ft_find_n(ms->cmd_lst->args);
 	if (newline_flag)
@@ -64,6 +68,5 @@ void	ft_echo(t_minishell *ms)
 	}
 	if (newline_flag == 1)
 		printf("\n");
-	if (ms->n_pipes == 0)
-		exit(0);
+	exit(0);
 }

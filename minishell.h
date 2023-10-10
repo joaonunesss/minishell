@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/09 09:30:28 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/09 17:40:01 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/10 18:10:16 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,10 +209,14 @@ void	ft_close_pipes(t_minishell *ms);
 // BUILTINS _____________________________________________________________________
 
 void	ft_cd(t_minishell *ms);
+void	ft_cd_red();
 void	ft_echo(t_minishell *ms);
 void	ft_env(t_minishell *ms);
 void	ft_exit(t_minishell *ms);
+void 	ft_exit_red();
+void 	ft_exit_aux();
 void	ft_export(t_minishell *ms);
+void 	ft_export_red(t_minishell *ms);
 void	ft_pwd(t_minishell *ms);
 void	ft_unset(t_minishell *ms);
 
@@ -247,6 +251,7 @@ void	ft_update_env(t_env **env_lst, char *key, char *update);
 char 	ft_strchr2(const char *str, char c);
 void	ft_lstadd_back2(t_env *env_lst, t_env *new_envi);
 bool 	ft_not_forkable(t_minishell *ms);
+bool 	is_there_redirections(t_minishell *ms);
 
 
 // SIGNALS ________________________________________________________________________
