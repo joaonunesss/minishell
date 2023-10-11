@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/09 09:30:28 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/10 18:10:16 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/11 11:59:27 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -252,6 +252,7 @@ char 	ft_strchr2(const char *str, char c);
 void	ft_lstadd_back2(t_env *env_lst, t_env *new_envi);
 bool 	ft_not_forkable(t_minishell *ms);
 bool 	is_there_redirections(t_minishell *ms);
+bool 	is_option_valid(t_minishell *ms);
 
 
 // SIGNALS ________________________________________________________________________

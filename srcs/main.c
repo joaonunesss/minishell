@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/09 11:26:27 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/06 17:14:32 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/11 16:50:04 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,14 @@ void	ft_main_loop(t_minishell *ms)
 		ms->input = readline("minishell> ");
 		if (!ms->input)
 			ft_free_all(ms, YES);
+		printf("%i\n", ms->input[0]);
+		// if (ms->input[0] == 0)
+		// {
+		// 	printf("exit\n");
+		// 	g_exit_status = 130;
+		// 	ft_free_all(ms, NO);
+		// 	exit(g_exit_status);
+		// }
 		add_history(ms->input);
 		if (ft_everything_is_space(ms->input) == FALSE)
 		{
@@ -86,6 +94,6 @@ void	ft_free_all(t_minishell *ms, int exit_flag)
 	{
 		ft_free_env_lst(&ms->env_lst);
 		ft_free_str_array(ms->paths);
-		exit (g_exit_status); //change to exit status variable
+		exit (g_exit_status);
 	}
 }

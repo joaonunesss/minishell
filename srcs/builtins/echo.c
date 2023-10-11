@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:32:41 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/10 18:14:34 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/11 13:27:12 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,26 +14,11 @@
 
 int	ft_find_n(char **args)
 {
-	int		k;
-	int 	i;
 	int		newline_flag;
 
-	k = 1;
 	newline_flag = 1;
-	while (args[k])
-	{
-		i = 0;
-		while (args[k][i])
-		{
-			if (args[k][i] == '-' && args[k][i + 1] == 'n')
-			{
-				newline_flag = 0;
-				break ;
-			}
-			i++;
-		}
-		k++;
-	}
+	if (args[1][0] == '-' && args[1][1] == 'n')
+		newline_flag = 0;
 	return (newline_flag);
 }
 
@@ -41,12 +26,17 @@ void	ft_echo(t_minishell *ms)
 {
 	int	i;
 	int	newline_flag;
-	if(is_there_redirections(ms) == TRUE)
-	{
-		printf("\n");
-		exit(0); 
-	}
+
 	i = 0;
+	
+	if((ms->cmd_lst->args[1][1] == 'e' || ms->cmd_lst->args[1][1] == 'E') && ms->cmd_lst->args[1][2] == '\0')
+	{
+		if (!is_option_valid(ms))
+		{
+			g_exit_status = 1;	
+			return ;
+		}
+	}
 	newline_flag = ft_find_n(ms->cmd_lst->args);
 	if (newline_flag)
 		i = 1;
@@ -68,5 +58,6 @@ void	ft_echo(t_minishell *ms)
 	}
 	if (newline_flag == 1)
 		printf("\n");
-	exit(0);
+	g_exit_status = 0;
+	exit(g_exit_status);
 }

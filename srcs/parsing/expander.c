@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/03 15:51:46 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/09 13:26:48 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/11 13:10:36 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ void	ft_expand_command(t_minishell *ms, t_token *token)
 	{
 		key = ft_get_key(token->content);
 		if (ft_strncmp(key, "$?", 3) == 0)
-			value = ft_itoa(42); //create a exit status variable
+			value = ft_itoa(g_exit_status); //create a exit status variable
 		else
 			value = ft_get_env_value(&ms->env_lst, key);
 		tmp = token->content;

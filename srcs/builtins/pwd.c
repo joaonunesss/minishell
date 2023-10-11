@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:34:24 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/10 18:24:40 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/11 16:26:50 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,13 @@ void	ft_pwd(t_minishell *ms)
 	char	cwd[200];
 
 	(void) ms;
+	if (!is_option_valid(ms))
+	{
+		g_exit_status = 2;
+		exit(g_exit_status); 
+	}
 	if (getcwd(cwd, sizeof(cwd)))
 		printf("%s\n", cwd);
-	exit(0);
+	g_exit_status = 0;
+	exit(g_exit_status);
 }

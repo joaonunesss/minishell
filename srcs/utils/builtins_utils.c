@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/28 14:33:14 by jmarinho          #+#    #+#             */
-/*   Updated: 2023/10/10 18:10:21 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/11 13:18:00 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,4 +127,20 @@ bool is_there_redirections(t_minishell *ms)
 		token = token->next;
 	}
 	return (FALSE);
+}
+
+bool is_option_valid(t_minishell *ms)
+{
+	int i;
+
+	i = 0;
+	if (ms->cmd_lst->args[1])
+	{
+		if (ms->cmd_lst->args[1][0] == '-')
+		{
+			printf("minishell: %s: -%c: invalid option\n", ms->cmd_lst->args[0], ms->cmd_lst->args[1][1]);
+			return(FALSE);
+		}
+	}
+	return(TRUE);
 }

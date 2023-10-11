@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:36:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/10 18:17:33 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/11 16:27:37 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,25 @@ void	ft_unset(t_minishell *ms)
 	int i;
 	t_env	*envi;
 	t_env	*prev;
+
 	if(is_there_redirections(ms) == TRUE)
 		exit(0);
+	if (!is_option_valid(ms))
+	{
+		g_exit_status = 2;
+		exit(g_exit_status); 
+	}
+	i = 0;
+	while(ms->cmd_lst->args[1][i])
+	{
+		if(!ft_isalpha(ms->cmd_lst->args[1][0]) || !ft_isalnum(ms->cmd_lst->args[1][i]))
+		{
+			printf("minishell: export: %s: not a valid identifier\n", ms->cmd_lst->args[1]);
+			g_exit_status = 1;
+			return ;
+		}
+		i++;
+	}
 	i = 0;
 	envi = ms->env_lst;
 	prev = NULL;
