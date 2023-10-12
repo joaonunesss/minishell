@@ -6,11 +6,12 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:34:24 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/11 16:26:50 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/12 12:34:12 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
+
 
 void	ft_pwd(t_minishell *ms)
 {

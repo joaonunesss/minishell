@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:33:11 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/11 13:19:12 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/12 17:31:59 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@ void	ft_env(t_minishell *ms)
 
 	envi = ms->env_lst;
 	if (!is_option_valid(ms))
-		return ;
-	if (ms->cmd_lst->args[1])
+		g_exit_status = 125;
+	else if (ms->cmd_lst->args[1])
 	{
 		printf("minishell: env: %s: No such file or directory\n", ms->cmd_lst->args[1]);
 		g_exit_status = 127;
@@ -36,7 +36,7 @@ void	ft_env(t_minishell *ms)
 		g_exit_status = 0;
 		if(ms->n_pipes > 0)
 			ft_free_pipes(ms);
-		ft_free_all(ms, YES);
 	}
+	ft_free_all(ms, YES);
 	exit(g_exit_status);
 }

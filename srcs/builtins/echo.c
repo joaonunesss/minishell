@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:32:41 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/11 13:27:12 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/12 17:29:33 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,14 +28,22 @@ void	ft_echo(t_minishell *ms)
 	int	newline_flag;
 
 	i = 0;
-	
+	if (ms->cmd_lst->args[1] == NULL)
+	{
+		printf("\n");
+		g_exit_status = 0;
+		ft_free_all(ms, YES);
+		exit(g_exit_status);
+	}
 	if((ms->cmd_lst->args[1][1] == 'e' || ms->cmd_lst->args[1][1] == 'E') && ms->cmd_lst->args[1][2] == '\0')
 	{
 		if (!is_option_valid(ms))
 		{
-			g_exit_status = 1;	
-			return ;
+			g_exit_status = 1;
+			ft_free_all(ms, YES);
+			exit(g_exit_status);
 		}
+		exit(g_exit_status);
 	}
 	newline_flag = ft_find_n(ms->cmd_lst->args);
 	if (newline_flag)
@@ -46,6 +54,8 @@ void	ft_echo(t_minishell *ms)
 		while(ms->cmd_lst->args[i][0] == '-' && ms->cmd_lst->args[i][1] == 'n')
 			i++;
 	}
+	if(ms->cmd_lst->args[1][0] == '$')
+		i++;
 	while (ms->cmd_lst->args[i])
 	{
 		if (ms->cmd_lst->args[i][0] == '\0')
@@ -59,5 +69,6 @@ void	ft_echo(t_minishell *ms)
 	if (newline_flag == 1)
 		printf("\n");
 	g_exit_status = 0;
+	ft_free_all(ms, YES);
 	exit(g_exit_status);
 }

@@ -6,17 +6,17 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:28:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/10 18:11:16 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/12 18:00:06 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-void	ft_executer(t_minishell *ms);
-void	ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
-void	ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
-void	ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
-void	ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd);
+void ft_executer(t_minishell *ms);
+void ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
+void ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
+void ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
+void ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd);
 
 /*
 	This is the main function of the execution part of the program.
@@ -39,20 +39,22 @@ void	ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd);
 			is an executable file and execute it with execve.
 */
 
-void	ft_executer(t_minishell *ms)
+void ft_executer(t_minishell *ms)
 {
-	int		i;
-	t_cmd	*curr;
+	int i;
+	int status;
+	t_cmd *curr;
 
 	i = 0;
+	status = 0;
 	curr = ms->cmd_lst;
 	ms->n_pipes = ft_count_pipes(ms->cmd_lst);
 	if (ms->n_pipes == 0)
 	{
 		if (ft_not_forkable(ms) == FALSE)
-				ft_execute_only_cmd(ms, curr, curr->cmd);
-		if (ft_strncmp(ms->cmd_lst->cmd, "exit", 5) == 0 && is_there_redirections(ms) == TRUE)
-			exit(0);
+			ft_execute_only_cmd(ms, curr, curr->cmd);
+		if (ft_strncmp(ms->cmd_lst->cmd, "exit", 5) == 0 && is_there_redirections(ms) == TRUE)//PORQUE E QUE ISTO ESTA AQUI??? :D
+			exit(0); // alterar para g_exit_status???
 	}
 	else
 	{
@@ -65,14 +67,25 @@ void	ft_executer(t_minishell *ms)
 		}
 		ft_close_pipes(ms);
 		while (i < ms->n_pipes + 1)
-			waitpid(ms->pid[i++], NULL, 0);
+		{
+			waitpid(ms->pid[i++], &status, 0);
+			ft_signals();
+			if (WIFEXITED(status))
+				g_exit_status = WEXITSTATUS(status);
+			else if (WIFSIGNALED(status))
+				g_exit_status = 128 + WTERMSIG(status);
+		}
 	}
 }
 
-void	ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
+void ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 {
-	pid_t	pid;
+	pid_t pid;
+	int status;
 
+	status = 0;
+	if (ft_strncmp(cmd, "cat", 4) == 0)
+		ft_signals_child();
 	pid = fork();
 	if (pid < 0)
 		ft_perror(ms, E_FORK, YES);
@@ -85,18 +98,24 @@ void	ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 	}
 	else
 	{
-		ft_signals_child();
-		waitpid(pid, NULL, 0);
+		waitpid(pid, &status, 0);
+		ft_signals();
+		if (WIFEXITED(status))
+			g_exit_status = WEXITSTATUS(status);
+		else if (WIFSIGNALED(status))
+			g_exit_status = 128 + WTERMSIG(status);
 	}
 }
 
-void	ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
+void ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 {
 	if (curr->heredoc[0])
 	{
 		ft_signals_heredoc();
 		waitpid(ms->pid_heredoc, NULL, 0);
 	}
+	if (ft_strncmp(cmd, "cat", 4) == 0)
+		ft_signals_child();
 	ms->pid[curr->index] = fork();
 	if (ms->pid[curr->index] < 0)
 		ft_perror(ms, E_FORK, YES);
@@ -111,7 +130,7 @@ void	ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 	}
 }
 
-void	ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
+void ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 {
 	if (ft_strncmp(cmd, "echo", 5) == 0)
 		ft_echo(ms);
@@ -131,12 +150,12 @@ void	ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 		ft_execute_external(ms, curr, cmd);
 }
 
-void	ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd)
+void ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd)
 {
-	int		i;
-	char	*tmp;
-	char	*possible_path;
-	char	**possible_paths;
+	int i;
+	char *tmp;
+	char *possible_path;
+	char **possible_paths;
 
 	i = 0;
 	possible_paths = ms->paths;
@@ -150,7 +169,7 @@ void	ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd)
 			possible_path = ft_strjoin(tmp, cmd);
 			free(tmp);
 			if (!tmp || !possible_path)
-				break ;
+				break;
 		}
 		if (access(possible_path, F_OK | X_OK) == 0)
 			execve(possible_path, curr->args, ms->envp);

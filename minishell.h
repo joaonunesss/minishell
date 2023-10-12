@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/09 09:30:28 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/11 11:59:27 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/12 17:18:00 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@
 # define E_PIPE			"error: pipe"
 # define E_DUP2			"error: dup2"
 # define E_FORK			"error: fork"
+# define E_EOF_HEREDOC		"warning: here-document at line 1 delimited by end-of-file"
 # define E_HEREDOC		"error: heredoc"
 
 // ---------------------------------- COLORS ----------------------------------
@@ -218,7 +219,7 @@ void 	ft_exit_aux();
 void	ft_export(t_minishell *ms);
 void 	ft_export_red(t_minishell *ms);
 void	ft_pwd(t_minishell *ms);
-void	ft_unset(t_minishell *ms);
+int		ft_unset(t_minishell *ms);
 
 // UTILS ________________________________________________________________________
 
@@ -237,6 +238,7 @@ int		ft_count_redir(t_token *first, t_type type);
 int		ft_cmd_has_redir(t_cmd *cmd);
 int		ft_count_pipes(t_cmd *cmd_lst);
 void	ft_set_cmd_index(t_minishell *ms);
+void	ft_get_exit_status(t_minishell *ms);
 
 // free_utils.c
 void	ft_free_token_lst(t_token **token_lst);

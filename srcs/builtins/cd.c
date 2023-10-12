@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:31:45 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/11 14:29:53 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/12 18:02:35 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ void	ft_cd(t_minishell *ms)
 	arg_flag = 0;
 	if(is_there_redirections(ms) == TRUE)
 	{
-		is_option_valid(ms);
 		g_exit_status = 0;
 		exit(g_exit_status);
 	}
@@ -44,7 +43,7 @@ void	ft_cd(t_minishell *ms)
 	}
 	else if (!ms->cmd_lst->args[1] || ms->cmd_lst->args[1][0] == '~')
 		arg_flag = chdir(ft_find_env(ms->env_lst, "HOME"));
-	if (ms->cmd_lst->args[2])
+	if (ms->cmd_lst->args[1] && ms->cmd_lst->args[2])
 		printf("minishell: cd: too many arguments\n");
 	else if (arg_flag == -1)
 		printf("minishell: cd: %s: No such file or directory\n", ms->cmd_lst->args[1]);

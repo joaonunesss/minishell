@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   execution_utils.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/17 17:02:07 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/02 09:59:49 by ataboada         ###   ########.fr       */
+/*   Updated: 2023/10/12 15:15:16 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,3 +63,26 @@ void	ft_set_cmd_index(t_minishell *ms)
 		curr = curr->next;
 	}
 }
+
+// Retrieves the exit status of the child processes.
+
+// void	get_exit_status(t_minishell *ms)
+// {
+// 	int		i;
+// 	pid_t	pid;
+// 	int		status;
+
+// 	i = 0;
+// 	status = 0;
+// 	while (i < ms->n_cmd)
+// 	{
+// 		signal(SIGINT, &handler_sigint);
+// 		pid = waitpid(ms->pid[i++], &status, 0);
+// 		if (pid < 0)
+// 			continue ;
+// 		if (WIFEXITED(status))
+// 			g_exit = WEXITSTATUS(status);
+// 		else if (WIFSIGNALED(status))
+// 			g_exit = 128 + WTERMSIG(status);
+// 	}
+// }

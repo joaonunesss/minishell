@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   redir_handler.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/10 13:50:25 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/02 10:25:18 by ataboada         ###   ########.fr       */
+/*   Updated: 2023/10/12 17:17:32 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ void	ft_create_heredoc(t_minishell *ms, char *delimiter)
 		line = readline("heredoc> ");
 		if (!line)
 		{
-			ft_perror(ms, E_HEREDOC, YES);
+			ft_perror(ms, E_EOF_HEREDOC, YES);
 			break ;
 		}
 		if (line && ft_strncmp(line, delimiter, ft_strlen(line) + 1) == 0)
@@ -113,7 +113,7 @@ char	*ft_expand_heredoc(t_minishell *ms, char *line)
 	{
 		key = ft_get_key(heredoc_expanded);
 		if (ft_strncmp(key, "$?", 3) == 0)
-			value = ft_itoa(42); //create a exit status variable
+			value = ft_itoa(g_exit_status); //create a exit status variable
 		else
 			value = ft_get_env_value(&ms->env_lst, key);
 		tmp = heredoc_expanded;
