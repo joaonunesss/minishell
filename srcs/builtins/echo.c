@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:32:41 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/12 17:29:33 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/16 12:14:37 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ void	ft_echo(t_minishell *ms)
 	else
 	{
 		i = 2;
-		while(ms->cmd_lst->args[i][0] == '-' && ms->cmd_lst->args[i][1] == 'n')
+		while(ms->cmd_lst->args[i] && (ms->cmd_lst->args[i][0] == '-' && ms->cmd_lst->args[i][1] == 'n'))
 			i++;
 	}
 	if(ms->cmd_lst->args[1][0] == '$')

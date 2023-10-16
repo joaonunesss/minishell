@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/28 14:33:14 by jmarinho          #+#    #+#             */
-/*   Updated: 2023/10/11 13:18:00 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/16 15:42:10 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,4 +143,25 @@ bool is_option_valid(t_minishell *ms)
 		}
 	}
 	return(TRUE);
+}
+
+void ft_unsetable(t_minishell *ms, char *cmd)
+{
+	if (ft_strncmp(cmd, "echo", 5) == 0)
+		return ;
+	else if (ft_strncmp(cmd, "pwd", 4) == 0)
+		return ;
+	else if (ft_strncmp(cmd, "export", 7) == 0)
+		return ;
+	else if (ft_strncmp(cmd, "unset", 6) == 0)
+		return ;
+	else if (ft_strncmp(cmd, "cd", 3) == 0)
+		return ;
+	else if (ft_strncmp(cmd, "exit", 5) == 0)
+		return ;
+	else if(!ft_get_paths(ms->env_lst))
+	{
+		printf("minishel: %s: No such file or directory\n", cmd);
+		g_exit_status = 127;
+	}
 }

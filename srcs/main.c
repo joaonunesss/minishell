@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/09 11:26:27 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/12 17:10:32 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/16 15:54:39 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ void	ft_main_loop(t_minishell *ms)
 	while (42)
 	{
 		ms->input = readline("minishell> ");
-		if (ms->input == NULL || ms->input[0] == '\0')
+		if (ms->input == NULL)
 		{
 			printf("exit\n");
 			g_exit_status = 0;

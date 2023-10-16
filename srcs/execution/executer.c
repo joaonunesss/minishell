@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:28:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/12 18:00:06 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/16 15:46:45 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,7 @@ void ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 		ft_perror(ms, E_FORK, YES);
 	else if (pid == 0)
 	{
+		ft_unsetable(ms, cmd);
 		if (ft_cmd_has_redir(curr) == TRUE)
 			ft_handle_redir(ms, curr);
 		ft_execute_cmd(ms, curr, cmd);
@@ -121,6 +122,7 @@ void ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 		ft_perror(ms, E_FORK, YES);
 	else if (ms->pid[curr->index] == 0)
 	{
+		ft_unsetable(ms, cmd);
 		if (ft_cmd_has_redir(curr) == YES)
 			ft_handle_redir(ms, curr);
 		ft_handle_pipes(ms, curr);
@@ -136,7 +138,7 @@ void ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 		ft_echo(ms);
 	else if (ft_strncmp(cmd, "pwd", 4) == 0)
 		ft_pwd(ms);
-	else if (ft_strncmp(cmd, "env", 4) == 0)
+	else if (ft_strncmp(cmd, "env", 4) == 0 && ft_get_paths(ms->env_lst))
 		ft_env(ms);
 	else if (ft_strncmp(cmd, "export", 7) == 0)
 		ft_export(ms);
@@ -158,7 +160,7 @@ void ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd)
 	char **possible_paths;
 
 	i = 0;
-	possible_paths = ms->paths;
+	possible_paths = ft_get_paths(ms->env_lst);
 	while (possible_paths[i])
 	{
 		if (ft_strncmp(cmd, "/", 1) == 0 || ft_strncmp(cmd, "./", 2) == 0)
