@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:33:31 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/11 15:17:11 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/16 17:23:23 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,26 +40,20 @@ void	ft_exit(t_minishell *ms)
 		g_exit_status = 0;
 	if(ms->n_pipes != 0)
 		exit(g_exit_status);
-	if (ms->cmd_lst->args[1] == NULL)
-	{
-		printf("exit\n");
-		if(ms->n_pipes > 0)
-			ft_free_pipes(ms);
-		ft_free_all(ms, YES);
-		exit(g_exit_status);
-	}
-	if (ms->cmd_lst->args[1] != NULL && ft_isnum(ms->cmd_lst->args[1]))
+	printf("exit\n");
+	if (ms->cmd_lst->args[1] && ft_isnum(ms->cmd_lst->args[1]))
 	{
 		printf("minishel: exit: %s: numeric argument required\n", ms->cmd_lst->args[1]);
 		g_exit_status = 2;
-		return ;
 	}
-	else if (ms->cmd_lst->args[2] != NULL)
+	else if (ms->cmd_lst->args[2] && ms->cmd_lst->args[1])
 	{
-		printf("exit\nminishell: exit: too many arguments\n");
+		printf("minishell: exit: too many arguments\n");
 		g_exit_status = 1;
 		return ;
 	}
+	if(ms->n_pipes > 0)
+	ft_free_pipes(ms);
 	ft_free_all(ms, YES);
 	exit(g_exit_status);
 }
