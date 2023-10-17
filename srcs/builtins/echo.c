@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:32:41 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/16 12:14:37 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/17 17:12:12 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,26 @@ void	ft_echo(t_minishell *ms)
 	int	i;
 	int	newline_flag;
 
+	i = 0;
+	if (!ft_quote_checker(ms->input))
+	{
+		printf("%s\n", ms->cmd_lst->args[1]);
+		g_exit_status = 0;
+		exit(g_exit_status);
+	}
+	if (ms->cmd_lst->args[1][0] == '~')
+	{
+		printf("%s", ft_get_env_value(&ms->env_lst, "HOME"));
+		if(ms->cmd_lst->args[1][1])
+		{
+			i++;
+			while(ms->cmd_lst->args[1][i])
+				printf("%c", ms->cmd_lst->args[1][i++]);
+		}
+		printf("\n");
+		g_exit_status = 0;
+		exit(g_exit_status);
+	}
 	i = 0;
 	if (ms->cmd_lst->args[1] == NULL)
 	{

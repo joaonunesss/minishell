@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/28 14:33:14 by jmarinho          #+#    #+#             */
-/*   Updated: 2023/10/16 15:42:10 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/17 16:54:25 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,6 +134,8 @@ bool is_option_valid(t_minishell *ms)
 	int i;
 
 	i = 0;
+	if(ft_strncmp(ms->cmd_lst->args[0], "cd", 3) == 0 && ms->cmd_lst->args[1][0] == '-')
+		return (TRUE);
 	if (ms->cmd_lst->args[1])
 	{
 		if (ms->cmd_lst->args[1][0] == '-')

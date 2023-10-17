@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/09 09:30:28 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/17 12:15:28 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/17 14:32:38 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -262,7 +262,7 @@ void 	ft_unsetable(t_minishell *ms, char *cmd);
 // signals.c
 void	ft_signals(void);
 void	ft_signals_heredoc(void);
-void	ft_signals_child(void);
+void	ft_signals_child(char *cmd);
 void	ft_signals_ignore(void);
 
 // handlers.c

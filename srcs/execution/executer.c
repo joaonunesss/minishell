@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:28:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/16 15:46:45 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/17 14:29:38 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 
 	status = 0;
 	if (ft_strncmp(cmd, "cat", 4) == 0)
-		ft_signals_child();
+		ft_signals_child(cmd);
 	pid = fork();
 	if (pid < 0)
 		ft_perror(ms, E_FORK, YES);
@@ -116,7 +116,7 @@ void ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 		waitpid(ms->pid_heredoc, NULL, 0);
 	}
 	if (ft_strncmp(cmd, "cat", 4) == 0)
-		ft_signals_child();
+		ft_signals_child(cmd);
 	ms->pid[curr->index] = fork();
 	if (ms->pid[curr->index] < 0)
 		ft_perror(ms, E_FORK, YES);
@@ -175,6 +175,8 @@ void ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd)
 		}
 		if (access(possible_path, F_OK | X_OK) == 0)
 			execve(possible_path, curr->args, ms->envp);
+		else
+			g_exit_status = 127;
 		free(possible_path);
 		i++;
 	}

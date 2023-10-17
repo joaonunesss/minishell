@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:33:31 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/16 17:23:23 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/17 14:38:26 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ int ft_isnum(char *arg)
 	int i;
 
 	i = 0;
+	if (arg[i] == '-' || arg[i] == '+')
+		i++;
 	while(arg[i])
 	{
 		if (arg[i] < '0' || arg[i] > '9')

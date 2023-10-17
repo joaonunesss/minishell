@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/06 16:01:57 by jmarinho          #+#    #+#             */
-/*   Updated: 2023/10/12 16:47:04 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/17 14:39:04 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,8 @@ void	ft_handler_child(int signum)
 		return ;
 	}
 	else if (signum == SIGQUIT)
-		ft_exit(NULL);
-	g_exit_status = 128 + signum;
+	{
+		g_exit_status = 128 + signum;
+		printf("Quit (core dumped)\n");
+	}	
 }
