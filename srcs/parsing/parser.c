@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/30 11:51:17 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/16 16:48:22 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/18 15:48:19 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,25 +41,137 @@ int	ft_parser(t_minishell *ms, char *input)
 	return (EXIT_SUCCESS);
 }
 
+// int		ft_quote_checker(char *input)
+// {
+// 	int i;
+// 	int closed_quote;
+
+// 	i = 0;
+// 	closed_quote = YES;
+// 	while (input[i])
+// 	{
+// 		if (input[i] == '\'' || input[i] == '\"')
+// 		{
+// 			if (closed_quote == YES)
+// 				closed_quote = NO;
+// 			else if (closed_quote == NO)
+// 				closed_quote = YES;
+// 		}
+// 		i++;
+// 	}
+// 	if (closed_quote == NO)
+// 		return (printf("%s\n", E_QUOTES) && EXIT_FAILURE);
+// 	return (EXIT_SUCCESS);
+// }
+
+// int		ft_quote_checker(char *input)
+// {
+// 	int i;
+// 	int closed_quote;
+
+// 	i = 0;
+// 	closed_quote = YES;
+// 	while (input[i])
+// 	{
+// 		// printf("%c\n", input[i]);
+// 		if (input[i] == '\'')
+// 		{
+// 			while(input[i])
+// 			{
+// 				// printf("input \'[%i] %c\n", i, input[i]);
+// 				if (input[i] == '\'')
+// 				{
+// 					if (closed_quote == YES)
+// 						closed_quote = NO;
+// 					else if (closed_quote == NO)
+// 					{
+// 						closed_quote = YES;
+// 						break ;
+// 					}
+// 				}
+// 				i++;
+// 			}
+// 		}
+// 		else if (input[i] == '\"')
+// 		{
+// 			while(input[i])
+// 			{
+// 				// printf("input \"[%i] %c\n", i, input[i]);
+// 				if (input[i] ==  '\"')
+// 				{
+// 					if (closed_quote == YES)
+// 						closed_quote = NO;
+// 					else if (closed_quote == NO)
+// 					{
+// 						closed_quote = YES;
+// 						break ;
+// 					}
+// 				}
+// 				i++;
+// 			}
+// 		}
+// 		i++;
+// 	}
+// 	// printf("close %i\n", closed_quote);
+// 	if (closed_quote == NO)
+// 		return (printf("%s\n", E_QUOTES) && EXIT_FAILURE);
+// 	return (EXIT_SUCCESS);
+// }
+
 int		ft_quote_checker(char *input)
 {
 	int i;
 	int closed_quote;
+	int closed_dquote;
+	int flag;
 
 	i = 0;
+	flag = 0;
 	closed_quote = YES;
+	closed_dquote = YES;
 	while (input[i])
 	{
-		if (input[i] == '\'' || input[i] == '\"')
+		if (input[i] == '\'')
 		{
-			if (closed_quote == YES)
-				closed_quote = NO;
-			else if (closed_quote == NO)
-				closed_quote = YES;
+			flag = 1;
+			while(input[i])
+			{
+				if (input[i] == '\'')
+				{
+					if (closed_quote == YES)
+						closed_quote = NO;
+					else if (closed_quote == NO)
+					{
+						closed_quote = YES;
+						break;
+					}
+				}
+				i++;
+			}
+		}
+		else if(input[i] == '\"')
+		{
+			flag = 1;
+			while(input[i])
+			{
+				if(input[i] == '\"')
+				{
+					if (closed_dquote == YES)
+						closed_dquote = NO;
+					else if (closed_dquote == NO)
+					{
+						closed_dquote = YES;
+						break;
+					}
+				}
+				i++;
+			}
 		}
 		i++;
 	}
-	if (closed_quote == NO)
+	if (closed_quote == NO || closed_dquote == NO)
 		return (printf("%s\n", E_QUOTES) && EXIT_FAILURE);
+	if (flag == 0)
+		return (2);
 	return (EXIT_SUCCESS);
 }

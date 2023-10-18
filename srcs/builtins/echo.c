@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:32:41 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/17 17:12:12 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/18 16:32:36 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,13 +28,14 @@ void	ft_echo(t_minishell *ms)
 	int	newline_flag;
 
 	i = 0;
-	if (!ft_quote_checker(ms->input))
+	if (ms->cmd_lst->args[1] == NULL)
 	{
-		printf("%s\n", ms->cmd_lst->args[1]);
+		printf("\n");
 		g_exit_status = 0;
+		ft_free_all(ms, YES);
 		exit(g_exit_status);
 	}
-	if (ms->cmd_lst->args[1][0] == '~')
+	if (ms->cmd_lst->args[1][0] == '~' && ms->cmd_lst->args[1][1] == '/')
 	{
 		printf("%s", ft_get_env_value(&ms->env_lst, "HOME"));
 		if(ms->cmd_lst->args[1][1])
@@ -47,12 +48,10 @@ void	ft_echo(t_minishell *ms)
 		g_exit_status = 0;
 		exit(g_exit_status);
 	}
-	i = 0;
-	if (ms->cmd_lst->args[1] == NULL)
+	if (!ft_quote_checker(ms->input))
 	{
-		printf("\n");
+		printf("%s\n", ms->cmd_lst->args[1]);
 		g_exit_status = 0;
-		ft_free_all(ms, YES);
 		exit(g_exit_status);
 	}
 	if((ms->cmd_lst->args[1][1] == 'e' || ms->cmd_lst->args[1][1] == 'E') && ms->cmd_lst->args[1][2] == '\0')

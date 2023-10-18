@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:36:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/17 17:23:44 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/18 16:12:49 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,8 @@ int	ft_unset(t_minishell *ms)
 	i = 0;
 	while(ms->cmd_lst->args[1][i] != '=' && ms->cmd_lst->args[1][i])
 	{
-		if((!ft_isalpha(ms->cmd_lst->args[1][0]) || !ft_isalnum(ms->cmd_lst->args[1][i])) && !ft_strncmp(ms->cmd_lst->args[1], "_", 2))
+		if((!ft_isalpha(ms->cmd_lst->args[1][0]) || !ft_isalnum(ms->cmd_lst->args[1][i]))
+			&& !ft_strchr(ms->cmd_lst->args[1], '_'))
 		{
 			printf("minishell: %s: %s: not a valid identifier\n", ms->cmd_lst->args[0], ms->cmd_lst->args[1]);
 			g_exit_status = 1;

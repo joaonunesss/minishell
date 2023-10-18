@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:34:03 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/17 17:18:39 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/18 16:43:57 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,11 @@ void	ft_export(t_minishell *ms)
 	char	*value;
 	char	*equal_ptr;
 	int 	i;
+	int 	j;
 
+	i = -1;
+	// while(ms->cmd_lst->args[++i])
+	// 	printf("arg[%i] %s\n", i, ms->cmd_lst->args[i]);
 	if(is_there_redirections(ms) == TRUE || ms->cmd_lst->args[1] == NULL)
 	{
 		ft_export_red(ms);
@@ -51,6 +55,7 @@ void	ft_export(t_minishell *ms)
 	if (g_exit_status == 1)
 		return ;
 	i = 0;
+	j = 2;
 	while(ms->cmd_lst->args[++i])
 	{
 		equal_ptr = ft_strchr(ms->cmd_lst->args[i], '=');
@@ -58,8 +63,9 @@ void	ft_export(t_minishell *ms)
 			break ;
 		key = ft_substr(ms->cmd_lst->args[i], 0, equal_ptr - ms->cmd_lst->args[i]);
 		value = equal_ptr + 1;
-		if (!ft_quote_checker(ms->input))
-			value = ms->cmd_lst->args[2];
+		if (!ft_quote_checker(ms->input) && ms->cmd_lst->args[2])
+			while(ms->cmd_lst->args[j])
+				value = ft_strjoin(value, ms->cmd_lst->args[j++]);
 		if (!*key)
 		{
 			printf("minishell: export: `%s': not a valid identifier\n", equal_ptr);

@@ -6,7 +6,7 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/09 09:30:28 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/17 14:32:38 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/18 12:09:39 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,6 +148,7 @@ void	ft_free_all(t_minishell *ms, int exit_flag);
 // parser.c
 int		ft_parser(t_minishell *ms, char *input);
 int		ft_quote_checker(char *input);
+int		ft_quote_checker_for_export(char *input);
 
 // tokenizer.c
 void	ft_tokenizer(t_minishell *ms, char *input);
