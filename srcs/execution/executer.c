@@ -6,55 +6,30 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:28:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/17 14:29:38 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/12 18:39:49 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-void ft_executer(t_minishell *ms);
-void ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
-void ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
-void ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
-void ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd);
+void	ft_executer(t_minishell *ms);
+void	ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
+int		ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
+void	ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd);
+void	ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd);
 
-/*
-	This is the main function of the execution part of the program.
-	We have:
-		- ft_executer:
-			- will check if there are pipes or not. if not, we will execute
-				the cmd directly.
-			- if there are pipes, we will set the cmd indexes, open the pipes,
-				execute the cmds and then close the pipes.
-			- we also have to wait for each child process (one for each command)
-				to finish.
-		- ft_execute_only_cmd: if there are no pipes, we will execute the single
-			cmd inside a child process.
-			(cmd could be a builtin or external).
-		- ft_execute_mult_cmd: if there are pipes, we will execute the piped
-			cmds here. it's very similar to ft_execute_only_cmd, but we will also redirect the inputs and outputs to the pipes, as well as to the files if there are any redirections.
-		- ft_execute_cmd: we will check if the cmd is a builtin or not and
-			direct it to the right function.
-		- ft_execute_external: if the cmd is not a builtin, we will check if it
-			is an executable file and execute it with execve.
-*/
-
-void ft_executer(t_minishell *ms)
+void	ft_executer(t_minishell *ms)
 {
-	int i;
-	int status;
-	t_cmd *curr;
+	int		i;
+	t_cmd	*curr;
 
 	i = 0;
-	status = 0;
 	curr = ms->cmd_lst;
 	ms->n_pipes = ft_count_pipes(ms->cmd_lst);
 	if (ms->n_pipes == 0)
 	{
-		if (ft_not_forkable(ms) == FALSE)
+		if (ft_is_forkable(ms, YES) == TRUE)
 			ft_execute_only_cmd(ms, curr, curr->cmd);
-		if (ft_strncmp(ms->cmd_lst->cmd, "exit", 5) == 0 && is_there_redirections(ms) == TRUE)//PORQUE E QUE ISTO ESTA AQUI??? :D
-			exit(0); // alterar para g_exit_status???
 	}
 	else
 	{
@@ -62,67 +37,56 @@ void ft_executer(t_minishell *ms)
 		ft_open_pipes(ms);
 		while (curr)
 		{
-			ft_execute_mult_cmd(ms, curr, curr->cmd);
+			if (ft_execute_mult_cmd(ms, curr, curr->cmd) == 42)
+				return ;
 			curr = curr->next;
 		}
 		ft_close_pipes(ms);
 		while (i < ms->n_pipes + 1)
-		{
-			waitpid(ms->pid[i++], &status, 0);
-			ft_signals();
-			if (WIFEXITED(status))
-				g_exit_status = WEXITSTATUS(status);
-			else if (WIFSIGNALED(status))
-				g_exit_status = 128 + WTERMSIG(status);
-		}
+			ft_waitpid_handler(ms, i++, 0, YES);
 	}
 }
 
-void ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
+void	ft_execute_only_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 {
-	pid_t pid;
-	int status;
+	pid_t	pid;
+	int		status;
 
 	status = 0;
-	if (ft_strncmp(cmd, "cat", 4) == 0)
-		ft_signals_child(cmd);
+	if (curr->has_heredoc == NO)
+		signal(SIGQUIT, ft_handler_child);
+	else
+		signal(SIGQUIT, SIG_IGN);
 	pid = fork();
 	if (pid < 0)
-		ft_perror(ms, E_FORK, YES);
+		ft_perror(ms, E_FORK, YES, NULL);
 	else if (pid == 0)
 	{
-		ft_unsetable(ms, cmd);
+		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
+		ft_has_heredoc(ms);
+		// ft_unsetable(ms, cmd);
 		if (ft_cmd_has_redir(curr) == TRUE)
 			ft_handle_redir(ms, curr);
 		ft_execute_cmd(ms, curr, cmd);
 		ft_close_fds(curr);
 	}
 	else
-	{
-		waitpid(pid, &status, 0);
-		ft_signals();
-		if (WIFEXITED(status))
-			g_exit_status = WEXITSTATUS(status);
-		else if (WIFSIGNALED(status))
-			g_exit_status = 128 + WTERMSIG(status);
-	}
+		ft_waitpid_handler(ms, status, pid, NO);
 }
 
-void ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
+int	ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 {
-	if (curr->heredoc[0])
-	{
-		ft_signals_heredoc();
-		waitpid(ms->pid_heredoc, NULL, 0);
-	}
-	if (ft_strncmp(cmd, "cat", 4) == 0)
-		ft_signals_child(cmd);
+	int	status;
+
+	status = 0;
+	ft_execute_mult_cmd_helper(ms, curr, 0);
 	ms->pid[curr->index] = fork();
 	if (ms->pid[curr->index] < 0)
-		ft_perror(ms, E_FORK, YES);
+		ft_perror(ms, E_FORK, YES, NULL);
 	else if (ms->pid[curr->index] == 0)
 	{
-		ft_unsetable(ms, cmd);
+		ft_execute_mult_cmd_helper(ms, curr, 1);
 		if (ft_cmd_has_redir(curr) == YES)
 			ft_handle_redir(ms, curr);
 		ft_handle_pipes(ms, curr);
@@ -130,49 +94,66 @@ void ft_execute_mult_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 		ft_close_fds(curr);
 		ft_execute_cmd(ms, curr, cmd);
 	}
+	if (curr->has_heredoc == YES)
+	{
+		while (waitpid(-1, &status, WNOHANG) == 0)
+			;
+		if (WIFSIGNALED(status))
+			return (42);
+	}
+	return (0);
 }
 
-void ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
+void	ft_execute_cmd(t_minishell *ms, t_cmd *curr, char *cmd)
 {
 	if (ft_strncmp(cmd, "echo", 5) == 0)
-		ft_echo(ms);
+		ft_echo(ms, curr);
 	else if (ft_strncmp(cmd, "pwd", 4) == 0)
-		ft_pwd(ms);
-	else if (ft_strncmp(cmd, "env", 4) == 0 && ft_get_paths(ms->env_lst))
-		ft_env(ms);
+		ft_pwd(ms, curr);
+	else if (ft_strncmp(cmd, "env", 4) == 0 && ft_find_env(ms->env_lst, "PATH"))
+		ft_env(ms, curr);
 	else if (ft_strncmp(cmd, "export", 7) == 0)
-		ft_export(ms);
+		ft_export(ms, curr);
 	else if (ft_strncmp(cmd, "unset", 6) == 0)
-		ft_unset(ms);
+		ft_unset(ms, curr);
 	else if (ft_strncmp(cmd, "cd", 3) == 0)
-		ft_cd(ms);
+		ft_cd(ms, curr);
 	else if (ft_strncmp(cmd, "exit", 5) == 0)
-		ft_exit(ms);
+		ft_exit(ms, curr);
 	else
+	{
+		ft_build_envp(ms);
+		if (ft_find_env(ms->env_lst, "PATH") == NULL)
+		{
+			if (cmd[0] == '/' || (cmd[0] == '.' && cmd[1] == '/'))
+			{
+				if (access(cmd, F_OK | X_OK) == 0)
+					execve(cmd, curr->args, ms->envp);
+				ft_perror(ms, E_CMD, YES, cmd);
+					
+			}
+			else
+				ft_perror(ms, E_FILE, YES, cmd);
+		}
 		ft_execute_external(ms, curr, cmd);
+	}
 }
 
-void ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd)
+void	ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd)
 {
-	int i;
-	char *tmp;
-	char *possible_path;
-	char **possible_paths;
+	int		i;
+	char	*possible_path;
+	char	**possible_paths;
 
 	i = 0;
 	possible_paths = ft_get_paths(ms->env_lst);
+	if (!possible_paths)
+		ft_perror(ms, E_CMD, YES, cmd);
 	while (possible_paths[i])
 	{
-		if (ft_strncmp(cmd, "/", 1) == 0 || ft_strncmp(cmd, "./", 2) == 0)
-			possible_path = ft_strdup(cmd);
-		else
-		{
-			tmp = ft_strjoin(possible_paths[i], "/");
-			possible_path = ft_strjoin(tmp, cmd);
-			free(tmp);
-			if (!tmp || !possible_path)
-				break;
-		}
+		possible_path = ft_find_path(cmd, possible_paths[i]);
+		if (!possible_path)
+			ft_perror(ms, E_CMD, YES, cmd);
 		if (access(possible_path, F_OK | X_OK) == 0)
 			execve(possible_path, curr->args, ms->envp);
 		else
@@ -180,5 +161,9 @@ void ft_execute_external(t_minishell *ms, t_cmd *curr, char *cmd)
 		free(possible_path);
 		i++;
 	}
-	ft_perror(ms, E_CMD, YES);
+	ft_free_str_array(possible_paths);
+	ft_free_str_array(ms->envp);
+	if (ms->n_pipes > 0)
+		ft_free_pipes(ms);
+	ft_perror(ms, E_CMD, YES, cmd);
 }

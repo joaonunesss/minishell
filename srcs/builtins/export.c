@@ -3,78 +3,133 @@
 /*                                                        :::      ::::::::   */
 /*   export.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:34:03 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/18 16:43:57 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/10 10:49:04 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-void ft_export_red(t_minishell *ms)
-{
-	t_env	*envi;
+void	ft_export(t_minishell *ms, t_cmd *curr);
+int		ft_export_variable(t_minishell *ms, t_cmd *curr, int i);
+void	ft_export_list(t_minishell *ms, t_cmd *curr);
+void	ft_sort_env(t_env *env);
+void	ft_swap_env(t_env *curr, t_env *next);
 
-	envi = ms->env_lst;
-	while (envi)
+void	ft_export(t_minishell *ms, t_cmd *curr)
+{
+	int	i;
+
+	i = 0;
+	if (curr->args[1] == NULL)
+		return (ft_export_list(ms, curr));
+	if (!ft_cmd_has_valid_option(curr->args))
+		return (ft_builtin_error(ms, curr, NULL, 2));
+	while (curr->args[i])
 	{
-		printf("declare -x ");
-		printf("%s=%s\n", envi->key, envi->value);
-		envi = envi->next;
+		while (curr->args[++i])
+		{
+			if (ft_strlen(curr->args[i]) == 0)
+			{
+				ft_builtin_error(ms, curr, "", 1);
+				break ;
+			}
+			ft_export_unset(ms, curr->args[i]);
+			if (ft_export_variable(ms, curr, i) == ERROR_FOUND)
+				break ;
+		}
 	}
-	if(ms->n_pipes > 0)
-		ft_free_pipes(ms);
-	if(ms->cmd_lst->args[1] != NULL)
-		ft_free_all(ms, NO);
-	g_exit_status = 0;
+	if (ms->n_pipes > 0)
+		ft_free_all(ms, YES, YES);
 }
 
-void	ft_export(t_minishell *ms)
+int	ft_export_variable(t_minishell *ms, t_cmd *cur, int i)
 {
 	char	*key;
 	char	*value;
 	char	*equal_ptr;
-	int 	i;
-	int 	j;
 
-	i = -1;
-	// while(ms->cmd_lst->args[++i])
-	// 	printf("arg[%i] %s\n", i, ms->cmd_lst->args[i]);
-	if(is_there_redirections(ms) == TRUE || ms->cmd_lst->args[1] == NULL)
+	if (!ft_args_are_valid(cur->args[i], YES) || ms->n_pipes > 0)
+		return (ERROR_FOUND);
+	if (!ft_strchr(cur->args[i], '=') && ft_find_env(ms->env_lst, cur->args[i]))
+		return (ERROR_FOUND);
+	equal_ptr = ft_strchr(cur->args[i], '=');
+	if (!equal_ptr)
 	{
-		ft_export_red(ms);
-		return ;
+		ft_add_env_back(&ms->env_lst, ft_new_env(cur->args[i], NULL));
+		return (EXIT_SUCCESS);
 	}
-	if (!is_option_valid(ms))
+	key = ft_substr(cur->args[i], 0, equal_ptr - cur->args[i]);
+	if (!*key)
 	{
-		g_exit_status = 2;
-		return ; 
-	}
-	ft_unset(ms);
-	if (g_exit_status == 1)
-		return ;
-	i = 0;
-	j = 2;
-	while(ms->cmd_lst->args[++i])
-	{
-		equal_ptr = ft_strchr(ms->cmd_lst->args[i], '=');
-		if(!equal_ptr)
-			break ;
-		key = ft_substr(ms->cmd_lst->args[i], 0, equal_ptr - ms->cmd_lst->args[i]);
-		value = equal_ptr + 1;
-		if (!ft_quote_checker(ms->input) && ms->cmd_lst->args[2])
-			while(ms->cmd_lst->args[j])
-				value = ft_strjoin(value, ms->cmd_lst->args[j++]);
-		if (!*key)
-		{
-			printf("minishell: export: `%s': not a valid identifier\n", equal_ptr);
-			g_exit_status = 1;
-			return ;
-		}
-		ft_add_env_back(&ms->env_lst, ft_new_env(key, value));
 		free(key);
+		ft_builtin_error(ms, cur, equal_ptr, 1);
+		return (ERROR_FOUND);
 	}
-	if (ms->n_pipes != 0)
-		exit(0);
+	value = equal_ptr + 1;
+	ft_add_env_back(&ms->env_lst, ft_new_env(key, value));
+	free(key);
+	return (EXIT_SUCCESS);
+}
+
+void	ft_export_list(t_minishell *ms, t_cmd *curr)
+{
+	t_env	*sorted_env;
+
+	ft_sort_env(ms->env_lst);
+	sorted_env = ms->env_lst;
+	while (sorted_env)
+	{
+		ft_putstr_fd("declare -x ", curr->fd_out);
+		ft_putstr_fd(sorted_env->key, curr->fd_out);
+		if (sorted_env->value)
+		{
+			ft_putstr_fd("=\"", curr->fd_out);
+			ft_putstr_fd(sorted_env->value, curr->fd_out);
+			ft_putstr_fd("\"", curr->fd_out);
+		}
+		ft_putstr_fd("\n", curr->fd_out);
+		sorted_env = sorted_env->next;
+	}
+	g_exit_status = 0;
+	if (ms->n_pipes > 0)
+		ft_free_all(ms, YES, YES);
+}
+
+void	ft_sort_env(t_env *env)
+{
+	t_env	*curr;
+	int		swapped;
+
+	curr = env;
+	swapped = 1;
+	while (swapped)
+	{
+		curr = env;
+		swapped = 0;
+		while (curr->next)
+		{
+			if (ft_strcmp(curr->key, curr->next->key) > 0)
+			{
+				ft_swap_env(curr, curr->next);
+				swapped = 1;
+			}
+			curr = curr->next;
+		}
+	}
+}
+
+void	ft_swap_env(t_env *curr, t_env *next)
+{
+	char	*key_tmp;
+	char	*val_tmp;
+
+	key_tmp = curr->key;
+	val_tmp = curr->value;
+	curr->key = next->key;
+	curr->value = next->value;
+	next->key = key_tmp;
+	next->value = val_tmp;
 }

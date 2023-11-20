@@ -3,56 +3,35 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/09 11:26:27 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/16 17:27:01 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/11 11:53:38 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
 void	ft_main_loop(t_minishell *ms);
-void	ft_free_all(t_minishell *ms, int exit_flag);
+void	ft_special_handler(char *input);
+void	ft_free_all(t_minishell *ms, int free_pipes, int exit_flag);
 
-/*
-	This is the beginning of the program.
-	We initialize the main structure and start the main loop.
-	Cronologically, minishell uses the files/folders in this order:
-		1) main.c
-		2) environment
-			- environment_lst.c
-		3) parsing
-			- parser.c
-			- tokenizer.c
-			- tokenizer_utils.c
-			- syntax_checker.c
-			- expander.c
-			- command_table.c
-			- command_table_utils.c
-		4) execution
-			- executer.c
-			- redir_handler.c
-			- pipes_handler.c
-		5) builtins
-			- cd.c, echo.c, env.c, exit.c, export.c, pwd.c, unset.c
-*/
+int	g_exit_status;
 
 int	main(int ac, char **av, char **envp)
 {
 	t_minishell	ms;
 
 	(void)ac;
-	if(av[1])
+	if (av[1])
 	{
-		printf("minishell: %s: No such file or directory\n", av[1]);
-		return (1);	
+		printf("minishell: %s: no such file or directory\n", av[1]);
+		return (1);
 	}
 	ft_bzero(&ms, sizeof(t_minishell));
 	ms.envp = envp;
 	ft_init_env_lst(&ms.env_lst, ms.envp);
 	ms.paths = ft_get_paths(ms.env_lst);
-	ft_signals();
 	ft_main_loop(&ms);
 }
 
@@ -60,44 +39,52 @@ void	ft_main_loop(t_minishell *ms)
 {
 	while (42)
 	{
+		ft_signals();
 		ms->input = readline("minishell> ");
 		if (ms->input == NULL)
-		{
-			printf("exit\n");
-			g_exit_status = 0;
-			ft_free_all(ms, YES);
-		}
+			ft_free_all(ms, NO, YES);
 		add_history(ms->input);
-		if(ms->input[0] == '$' && ms->input[1] == '?')
+		ft_special_handler(ms->input);
+		if (ft_everything_is_space(ms->input) == FALSE)
 		{
-			if(ms->input[2] == '+' && ms->input[3] == '$' && ms->input[4] == '?')
-			{
-				printf("%i+%i: command not found\n", g_exit_status, g_exit_status);	
-				g_exit_status = 127;
-			}
-		}
-		else if (ft_everything_is_space(ms->input) == FALSE)
-		{
-			ms->file_error = NO;
 			ms->n_pipes = 0;
+			ms->core_dump = 0;
+			ms->file_error = 0;
 			if (ft_parser(ms, ms->input) == EXIT_SUCCESS)
 			{
+				ft_signals_child(ms);
 				ft_executer(ms);
 				if (ms->n_pipes > 0)
 					ft_free_pipes(ms);
 				unlink(".heredoc");
 			}
-			ft_free_all(ms, NO);
+			ft_free_all(ms, NO, NO);
 		}
 	}
 	rl_clear_history();
 }
 
-void	ft_free_all(t_minishell *ms, int exit_flag)
+void	ft_special_handler(char *input)
 {
+	if (input[0] == '$' && input[1] == '?')
+	{
+		if (input[2] == '+' && input[3] == '$' && input[4] == '?')
+		{
+			printf("%i+%i: command not found\n", g_exit_status, g_exit_status);
+			g_exit_status = 127;
+		}
+	}
+}
+
+void	ft_free_all(t_minishell *ms, int free_pipes, int exit_flag)
+{
+	if (ms->input == NULL)
+		printf("exit\n");
 	free(ms->input);
 	ft_free_token_lst(&ms->token_lst);
 	ft_free_cmd_lst(&ms->cmd_lst);
+	if (free_pipes == YES && ms->n_pipes > 0)
+		ft_free_pipes(ms);
 	if (exit_flag == YES)
 	{
 		ft_free_env_lst(&ms->env_lst);

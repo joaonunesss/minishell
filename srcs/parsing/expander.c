@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   expander.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/03 15:51:46 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/17 16:17:22 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/11 14:54:48 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,25 +18,6 @@ char	*ft_get_key(char *cmd);
 char	*ft_get_env_value(t_env **env_lst, char *key);
 char	*ft_replace_content(char *cmd, char *key, char *value);
 
-/*
-	This is where we will check if the command has a variable that needs to be expanded.
-	We will only expand variables that are followed by $, and won't handle $().
-	Reminders:
-		When a command has single quotes, we don't expand anything (we will only expand when the token is T_DQUOTE or T_OTHER)
-		$? is a special variable that expands to the exit status of the last command.
-	Example:
-		input: env | grep $USER
-		|-------------------------------|
-		| token | content |    type     |
-		|-------|---------|-------------|
-		|   1   |   env   | T_OTHER		|
-		|   2   |    |    | T_PIPE		|
-		|   3   |  grep   | T_OTHER		|
-		|   5   |  anna   | T_OTHER		|
-		|_______|_________|_____________|
-		note: $USER expands to my user, int his case, anna
-*/
-
 void	ft_expander(t_minishell *ms, t_token *token)
 {
 	t_token	*curr;
@@ -44,10 +25,14 @@ void	ft_expander(t_minishell *ms, t_token *token)
 	curr = token;
 	while (curr)
 	{
-		if (curr->content[0] == '$' &&
-			(curr->content[1] == '\0' || curr->content[1] == ' '))
+		if (curr->prev && !ft_strcmp(curr->prev->content, "<<"))
 			return ;
-		if (curr->type == T_DQUOTE || curr->type == T_OTHER)
+		if (curr->content[0] == '$'
+			&& (!curr->content[1] || curr->content[1] == ' '))
+			return ;
+		if (curr->content[0] == '$' && ft_is_symbol(curr->content[1]) == 2)
+			return ;
+		if (curr->type == T_OTHER)
 			ft_expand_command(ms, curr);
 		if (ft_strlen(curr->content) == 0)
 			curr->type = T_EMPTY;
@@ -55,21 +40,26 @@ void	ft_expander(t_minishell *ms, t_token *token)
 	}
 }
 
-void	ft_expand_command(t_minishell *ms, t_token *token)
+void	ft_expand_command(t_minishell *ms, t_token *tkn)
 {
 	char	*tmp;
 	char	*key;
 	char	*value;
 
-	while (ft_strchr(token->content, '$') != NULL)
+	while (ft_strchr(tkn->content, '$') != NULL)
 	{
-		key = ft_get_key(token->content);
-		if (ft_strncmp(key, "$?", 3) == 0)	
+		if (ft_in_squote(tkn->content, ft_strchr(tkn->content, '$')) == YES)
+			return ;
+		if ((ft_in_dquote(tkn->content, ft_strchr(tkn->content, '$')) == YES)
+			&& (!(ft_strcmp(tkn->content, "\"$\""))))
+			return ;
+		key = ft_get_key(tkn->content);
+		if (ft_strncmp(key, "$?", 2) == 0)
 			value = ft_itoa(g_exit_status);
 		else
 			value = ft_get_env_value(&ms->env_lst, key);
-		tmp = token->content;
-		token->content = ft_replace_content(token->content, key, value);
+		tmp = tkn->content;
+		tkn->content = ft_replace_content(tkn->content, key, value);
 		free(tmp);
 		free(key);
 		free(value);
@@ -87,7 +77,9 @@ char	*ft_get_key(char *cmd)
 		return (NULL);
 	if (tmp[1] == '?')
 		return (ft_strdup("$?"));
-	while (tmp[len + 1] == '_' || ft_isalnum(tmp[len + 1]) == YES)
+	if (ft_is_symbol(tmp[1]) == 1)
+		len++;
+	while (ft_isalnum(tmp[len + 1]) != 0 || tmp[len + 1] == '_')
 		len++;
 	return (ft_substr(tmp, 0, len + 1));
 }
@@ -101,7 +93,7 @@ char	*ft_get_env_value(t_env **env_lst, char *key)
 		key++;
 	while (current)
 	{
-		if (ft_strncmp(current->key, key, ft_strlen(key)) == 0)
+		if (ft_strcmp(current->key, key) == 0)
 			return (ft_strdup(current->value));
 		current = current->next;
 	}
@@ -114,6 +106,8 @@ char	*ft_replace_content(char *cmd, char *key, char *value)
 	char	*new_cmd;
 	int		new_len;
 
+	if (ft_isalnum(key[1]) == 1 || ft_is_symbol(key[1]) == 1)
+		return (ft_strdup(key + 2));
 	if (!cmd || !key || !value)
 		return (NULL);
 	new_len = ft_strlen(cmd) - ft_strlen(key) + ft_strlen(value);

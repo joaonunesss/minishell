@@ -6,88 +6,104 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:32:41 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/18 16:32:36 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/10 15:08:34 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-int	ft_find_n(char **args)
-{
-	int		newline_flag;
+void	ft_echo(t_minishell *ms, t_cmd *curr);
+int		ft_get_start_index(char **args);
+int		ft_tilde_expander(t_minishell *ms, t_cmd *curr, int i);
+void	ft_print_argument(char *s);
 
-	newline_flag = 1;
-	if (args[1][0] == '-' && args[1][1] == 'n')
-		newline_flag = 0;
-	return (newline_flag);
-}
-
-void	ft_echo(t_minishell *ms)
+void	ft_echo(t_minishell *ms, t_cmd *curr)
 {
 	int	i;
-	int	newline_flag;
 
 	i = 0;
-	if (ms->cmd_lst->args[1] == NULL)
-	{
-		printf("\n");
-		g_exit_status = 0;
-		ft_free_all(ms, YES);
-		exit(g_exit_status);
-	}
-	if (ms->cmd_lst->args[1][0] == '~' && ms->cmd_lst->args[1][1] == '/')
-	{
-		printf("%s", ft_get_env_value(&ms->env_lst, "HOME"));
-		if(ms->cmd_lst->args[1][1])
-		{
-			i++;
-			while(ms->cmd_lst->args[1][i])
-				printf("%c", ms->cmd_lst->args[1][i++]);
-		}
-		printf("\n");
-		g_exit_status = 0;
-		exit(g_exit_status);
-	}
-	if (!ft_quote_checker(ms->input))
-	{
-		printf("%s\n", ms->cmd_lst->args[1]);
-		g_exit_status = 0;
-		exit(g_exit_status);
-	}
-	if((ms->cmd_lst->args[1][1] == 'e' || ms->cmd_lst->args[1][1] == 'E') && ms->cmd_lst->args[1][2] == '\0')
-	{
-		if (!is_option_valid(ms))
-		{
-			g_exit_status = 1;
-			ft_free_all(ms, YES);
-			exit(g_exit_status);
-		}
-		exit(g_exit_status);
-	}
-	newline_flag = ft_find_n(ms->cmd_lst->args);
-	if (newline_flag)
-		i = 1;
-	else
-	{
-		i = 2;
-		while(ms->cmd_lst->args[i] && (ms->cmd_lst->args[i][0] == '-' && ms->cmd_lst->args[i][1] == 'n'))
-			i++;
-	}
-	if(ms->cmd_lst->args[1][0] == '$')
-		i++;
-	while (ms->cmd_lst->args[i])
-	{
-		if (ms->cmd_lst->args[i][0] == '\0')
-			i++;
-		if (!ms->cmd_lst->args[i + 1] && ms->cmd_lst->args[i])
-			printf("%s", ms->cmd_lst->args[i]);
-		else if (ms->cmd_lst->args[i])
-			printf("%s ", ms->cmd_lst->args[i]);
-		i++;
-	}
-	if (newline_flag == 1)
-		printf("\n");
 	g_exit_status = 0;
-	ft_free_all(ms, YES);
-	exit(g_exit_status);
+	if (curr->args[1] == NULL)
+	{
+		printf("\n");
+		ft_free_all(ms, YES, YES);
+	}
+	if (ft_cmd_has_valid_option(curr->args) == FALSE)
+		ft_free_all(ms, YES, YES);
+	i = ft_get_start_index(curr->args);
+	while (curr->args[++i])
+	{
+		i += ft_tilde_expander(ms, curr, i);
+		if (curr->args[i][0] != '~')
+			ft_print_argument(curr->args[i]);
+		if (curr->args[i + 1])
+			printf(" ");
+	}
+	if (ft_get_start_index(curr->args) == 0)
+		printf("\n");
+	ft_free_all(ms, YES, YES);
+}
+
+int	ft_get_start_index(char **args)
+{
+	int	i;
+	int	j;
+
+	i = 1;
+	j = 0;
+	while (args[i])
+	{
+		if (args[i][0] != '-' || args[i][1] != 'n')
+			break ;
+		else if (args[i][0] == '-' && args[i][1] == 'n')
+		{
+			j = 2;
+			while (args[i][j])
+			{
+				if (args[i][j] != 'n')
+					return (i - 1);
+				j++;
+			}
+		}
+		i++;
+	}
+	return (i - 1);
+}
+
+int	ft_tilde_expander(t_minishell *ms, t_cmd *curr, int i)
+{
+	char	*home;
+	char	**args;
+
+	home = ft_find_env(ms->env_lst, "HOME");
+	args = curr->args;
+	if (args[i][0] != '~')
+		return (0);
+	if (args[i][1] == '\0')
+		printf("%s", home);
+	else if (args[i][1] == '-' && (args[i][2] == '\0' || args[i][2] == '/'))
+		printf("%s%s", ft_find_env(ms->env_lst, "OLDPWD"), args[i] + 2);
+	else if (args[i][1] == '+' && (args[i][2] == '\0' || args[i][2] == '/'))
+		printf("%s%s", ft_find_env(ms->env_lst, "PWD"), args[i] + 2);
+	else if (args[i][1] == '/')
+		printf("%s%s", home, args[i] + 1);
+	else
+		printf("%s", args[i]);
+	if (args[i + 1])
+		return (1);
+	return (0);
+}
+
+void	ft_print_argument(char *s)
+{
+	int	i;
+
+	i = 0;
+	while (s[i])
+	{
+		if (s[i] == '\\' && s[i + 1] == '\\')
+			i++;
+		printf("%c", s[i]);
+		i++;
+	}
 }

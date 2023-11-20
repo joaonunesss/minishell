@@ -3,59 +3,58 @@
 /*                                                        :::      ::::::::   */
 /*   exit.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:33:31 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/17 14:38:26 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/10 11:13:54 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-int ft_isnum(char *arg)
-{
-	int i;
+void	ft_exit(t_minishell *ms, t_cmd *curr);
+int		ft_isnum(char *s);
 
-	i = 0;
-	if (arg[i] == '-' || arg[i] == '+')
-		i++;
-	while(arg[i])
+void	ft_exit(t_minishell *ms, t_cmd *curr)
+{
+	if (ms->n_pipes == 0)
+		printf("exit\n");
+	if (curr->args[1] && ft_isnum(curr->args[1]) == YES && curr->args[2])
+		return (ft_builtin_error(ms, curr, E_ARGS, 1));
+	if (curr->args[1] && ft_isnum(curr->args[1]) == NO)
 	{
-		if (arg[i] < '0' || arg[i] > '9')
-			return(1);
-		i++;
+		ft_builtin_error(ms, curr, curr->args[1], 2);
+		ft_free_all(ms, YES, YES);
 	}
-	return(0);
+	if (curr->args[1] && ft_isnum(curr->args[1]) == YES)
+	{
+		if (curr->args[1][0] == '-')
+			g_exit_status = 256 - ft_atoi(curr->args[1] + 1);
+		else
+			g_exit_status = ft_atoi(curr->args[1]);
+		ft_free_all(ms, YES, YES);
+	}
+	if (curr->has_heredoc == 1)
+		unlink(".heredoc");
+	ft_free_all(ms, YES, YES);
 }
 
-void	ft_exit(t_minishell *ms)
+int	ft_isnum(char *s)
 {
-	if(is_there_redirections(ms) == TRUE)
+	int	i;
+
+	i = 0;
+	while (s[i])
 	{
-		printf("exit\n");
-		g_exit_status = 0;
-		exit(g_exit_status);
+		if (s[1] && (s[i] == '-' || s[i] == '+'))
+		{
+			if (i != 0)
+				return (NO);
+			i++;
+		}
+		if (ft_isdigit(s[i]) == 0)
+			return (NO);
+		i++;
 	}
-	if (ms->cmd_lst->args[1] && ((ft_atoi(ms->cmd_lst->args[1])) || (ms->cmd_lst->args[1][0] == '0' && !ms->cmd_lst->args[1][1])))
-		g_exit_status = ft_atoi(ms->cmd_lst->args[1]);
-	else
-		g_exit_status = 0;
-	if(ms->n_pipes != 0)
-		exit(g_exit_status);
-	printf("exit\n");
-	if (ms->cmd_lst->args[1] && ft_isnum(ms->cmd_lst->args[1]))
-	{
-		printf("minishel: exit: %s: numeric argument required\n", ms->cmd_lst->args[1]);
-		g_exit_status = 2;
-	}
-	else if (ms->cmd_lst->args[2] && ms->cmd_lst->args[1])
-	{
-		printf("minishell: exit: too many arguments\n");
-		g_exit_status = 1;
-		return ;
-	}
-	if(ms->n_pipes > 0)
-	ft_free_pipes(ms);
-	ft_free_all(ms, YES);
-	exit(g_exit_status);
+	return (YES);
 }

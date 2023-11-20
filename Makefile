@@ -1,23 +1,11 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2023/10/18 13:04:50 by jmarinho          #+#    #+#              #
-#    Updated: 2023/10/18 13:17:07 by jmarinho         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
-# ----------------------------------- COLORS -----------------------------------
+# ---------------------------------- COLORS ------------------------------------
 
 RED = \033[0;31m
 GREEN = \033[0;32m
 PURPLE = \033[1;35m
 RESET = \033[0m
 
-# ---------------------------------- VARIABLES ---------------------------------
+# --------------------------------- VARIABLES ----------------------------------
 
 NAME = minishell
 
@@ -43,6 +31,7 @@ SRCS = srcs/main.c \
 		srcs/environment/environment_lst.c \
 		srcs/execution/executer.c \
 		srcs/execution/redir_handler.c \
+		srcs/execution/heredoc_handler.c \
 		srcs/execution/pipes_handler.c \
 		srcs/builtins/cd.c \
 		srcs/builtins/echo.c \
@@ -56,12 +45,13 @@ SRCS = srcs/main.c \
 		srcs/utils/execution_utils.c \
 		srcs/utils/free_utils.c \
 		srcs/utils/builtins_utils.c \
+		srcs/utils/builtins_utils_2.c \
 		srcs/signals/signal.c \
 		srcs/signals/handlers.c \
 
 S_OBJS = $(SRCS:.c=.o)
 
-# ------------------------------------ RULES -----------------------------------
+# ----------------------------------- RULES ------------------------------------
 
 all: $(NAME)
 
@@ -85,8 +75,5 @@ fclean: clean
 	@printf "$(RED)	Executable ./$(NAME) was removed.\n$(RESET)"
 
 re: fclean all
-
-valgrind: all
-	@valgrind --suppressions=readline.supp --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
 
 .PHONY: all clean fclean re

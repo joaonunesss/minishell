@@ -6,47 +6,37 @@
 /*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/17 17:02:07 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/12 15:15:16 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/12 18:27:16 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-int		ft_cmd_has_redir(t_cmd *cmd);
-int		ft_count_pipes(t_cmd *cmd_lst);
+int		ft_is_forkable(t_minishell *ms, int execution_flag);
 void	ft_set_cmd_index(t_minishell *ms);
+void	ft_waitpid_handler(t_minishell *ms, int i, pid_t pid, int exec_flag);
+char	*ft_find_path(char *cmd, char *possible_paths);
+void	ft_execute_mult_cmd_helper(t_minishell *ms, t_cmd *curr, int flag);
 
-int	ft_cmd_has_redir(t_cmd *cmd)
+int	ft_is_forkable(t_minishell *ms, int execution_flag)
 {
-	if (cmd->file_in)
-		return (YES);
-	if (cmd->file_tr)
-		return (YES);
-	if (cmd->heredoc[0])
-		return (YES);
-	if (cmd->file_ap)
-		return (YES);
-	return (NO);
-}
-
-int	ft_count_pipes(t_cmd *cmd_lst)
-{
-	int		n_cmds;
-	int		n_pipes;
-	t_cmd	*curr;
-
-	n_cmds = 0;
-	curr = cmd_lst;
-	while (curr)
+	if (!ft_strcmp(ms->cmd_lst->cmd, "cd")
+		|| !ft_strcmp(ms->cmd_lst->cmd, "exit")
+		|| !ft_strcmp(ms->cmd_lst->cmd, "export")
+		|| !ft_strcmp(ms->cmd_lst->cmd, "unset"))
 	{
-		n_cmds++;
-		curr = curr->next;
+		if (execution_flag == YES)
+		{
+			if (ms->cmd_lst->has_heredoc == YES)
+				signal(SIGQUIT, SIG_IGN);
+			ft_handle_redir(ms, ms->cmd_lst);
+			if (ms->file_error == NO)
+				ft_execute_cmd(ms, ms->cmd_lst, ms->cmd_lst->cmd);
+		}
+		return (FALSE);
 	}
-	if (n_cmds < 2)
-		n_pipes = 0;
 	else
-		n_pipes = n_cmds - 1;
-	return (n_pipes);
+		return (TRUE);
 }
 
 void	ft_set_cmd_index(t_minishell *ms)
@@ -64,25 +54,65 @@ void	ft_set_cmd_index(t_minishell *ms)
 	}
 }
 
-// Retrieves the exit status of the child processes.
+void	ft_waitpid_handler(t_minishell *ms, int i, pid_t pid, int exec_flag)
+{
+	int	status;
 
-// void	get_exit_status(t_minishell *ms)
-// {
-// 	int		i;
-// 	pid_t	pid;
-// 	int		status;
+	status = 0;
+	if (exec_flag == YES)
+		waitpid(ms->pid[i++], &status, 0);
+	else if (exec_flag == NO)
+		waitpid(pid, &status, 0);
+	ft_signals();
+	if (WIFEXITED(status))
+		g_exit_status = WEXITSTATUS(status);
+	else if (WIFSIGNALED(status))
+	{
+		if (WCOREDUMP(status) && !ms->core_dump)
+			printf("Quit (core dumped)\n");
+		ms->core_dump = YES;
+		g_exit_status = 128 + WTERMSIG(status);
+	}
+}
 
-// 	i = 0;
-// 	status = 0;
-// 	while (i < ms->n_cmd)
-// 	{
-// 		signal(SIGINT, &handler_sigint);
-// 		pid = waitpid(ms->pid[i++], &status, 0);
-// 		if (pid < 0)
-// 			continue ;
-// 		if (WIFEXITED(status))
-// 			g_exit = WEXITSTATUS(status);
-// 		else if (WIFSIGNALED(status))
-// 			g_exit = 128 + WTERMSIG(status);
-// 	}
-// }
+char	*ft_find_path(char *cmd, char *possible_paths)
+{
+	char	*tmp;
+	char	*possible_path;
+
+	tmp = NULL;
+	if (!ft_strncmp(cmd, "/", 1) || !ft_strncmp(cmd, "./", 2))
+		possible_path = ft_strdup(cmd);
+	else
+	{
+		tmp = ft_strjoin(possible_paths, "/");
+		possible_path = ft_strjoin(tmp, cmd);
+		free(tmp);
+		if (!tmp)
+			return (NULL);
+	}
+	return (possible_path);
+}
+
+void	ft_execute_mult_cmd_helper(t_minishell *ms, t_cmd *curr, int flag)
+{
+	if (flag == 0)
+	{
+		if (curr->has_heredoc == NO)
+			signal(SIGQUIT, ft_handler_child);
+		else
+			signal(SIGQUIT, SIG_IGN);
+	}
+	if (flag == 1)
+	{
+		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
+		if (curr->has_heredoc == YES)
+		{
+			ft_free_heredoc(0, ms);
+			signal(SIGINT, ft_handler_heredoc);
+			signal(SIGQUIT, SIG_IGN);
+		}
+		// ft_unsetable(ms, curr->cmd);
+	}
+}

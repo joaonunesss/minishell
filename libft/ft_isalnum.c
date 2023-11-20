@@ -3,22 +3,29 @@
 /*                                                        :::      ::::::::   */
 /*   ft_isalnum.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 18:50:56 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/11 16:17:46 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/04 21:31:29 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
-#include <stdio.h>
 
+/**
+ * @brief Checks if the passed character is a number or a letter.
+ * @param c Character to be checked.
+ * @return [1] if c is a number, [2] if c is a letter, [0] otherwise.
+ */
 int	ft_isalnum(int c)
 {
-	if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+	if ((c >= 48 && c <= 57))
+	{
 		return (1);
-	else if (c >= '0' && c <= '9')
-		return (1);
-	else
-		return (0);
+	}
+	else if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122))
+	{
+		return (2);
+	}
+	return (0);
 }

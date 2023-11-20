@@ -3,47 +3,39 @@
 /*                                                        :::      ::::::::   */
 /*   pipes_handler.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/19 18:58:27 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/04 12:24:34 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/10/29 18:08:27 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
+int		ft_count_pipes(t_cmd *cmd_lst);
 void	ft_open_pipes(t_minishell *ms);
 void	ft_handle_pipes(t_minishell *ms, t_cmd *curr);
 void	ft_close_pipes(t_minishell *ms);
 
-/*
-	Here we have the functions that help us handle the pipes.
-	We have:
-		- ft_open_pipes: this function will create and allocate memory for
-			the pipes, as well as allocate memory for the fork pids.
-		- ft_pipes_handler: this function is the responsible to handle the STDIN
-			and STDOUT of each command, depending on each being the first
-			command, last command, or middle command (pipe before and after it).
-		- ft_close_pipes: this function will close all the pipes that were
-			previously opened.
+int	ft_count_pipes(t_cmd *cmd_lst)
+{
+	int		n_cmds;
+	int		n_pipes;
+	t_cmd	*curr;
 
-	To understand the pipes_handler function a little better, here is an example:
-
-		input: ls -l | grep a | wc -l > a.txt
-		|----------------------------------|
-		| command |   STDIN   |   STDOUT   |
-		|---------|-----------|------------|
-		|  ls -l  |   fd_in   |  pipe[1]   |
-		|  grep a |  pipe[0]  |  pipe[1]   |
-		|  wc -l  |  pipe[0]  |  fd_out    |
-		|----------------------------------|
-
-		1) the result of the first command is written to the pipe.
-		2) the result of the second command is read from the pipe and written
-			to the second pipe.
-		3) the result of the third command is read from the second pipe and
-			written to the file.
-*/
+	n_cmds = 0;
+	curr = cmd_lst;
+	while (curr)
+	{
+		n_cmds++;
+		curr = curr->next;
+	}
+	if (n_cmds < 2)
+		n_pipes = 0;
+	else
+		n_pipes = n_cmds - 1;
+	return (n_pipes);
+}
 
 void	ft_open_pipes(t_minishell *ms)
 {
@@ -54,19 +46,19 @@ void	ft_open_pipes(t_minishell *ms)
 		return ;
 	ms->pid = (pid_t *)ft_calloc(sizeof(pid_t), ms->n_pipes + 1);
 	if (!ms->pid)
-		ft_perror(ms, E_MALLOC, NO);
+		ft_perror(ms, E_MALLOC, NO, NULL);
 	if (ms->n_pipes == 0)
 		return ;
 	ms->pipe_fd = (int **)ft_calloc(sizeof(int *), ms->n_pipes);
 	if (!ms->pipe_fd)
-		ft_perror(ms, E_MALLOC, NO);
+		ft_perror(ms, E_MALLOC, NO, NULL);
 	while (i < ms->n_pipes)
 	{
 		ms->pipe_fd[i] = (int *)ft_calloc(sizeof(int), 2);
 		if (!ms->pipe_fd[i])
-			ft_perror(ms, E_MALLOC, NO);
+			ft_perror(ms, E_MALLOC, NO, NULL);
 		if (pipe(ms->pipe_fd[i]) < 0)
-			ft_perror(ms, E_PIPE, NO);
+			ft_perror(ms, E_PIPE, NO, NULL);
 		i++;
 	}
 }

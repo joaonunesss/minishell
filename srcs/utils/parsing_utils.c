@@ -3,19 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   parsing_utils.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/07 17:56:24 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/02 10:18:57 by ataboada         ###   ########.fr       */
+/*   Updated: 2023/11/09 12:56:00 by jmarinho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
 int		ft_is_space(char c);
-int		ft_len_until_match(char *input, char *match);
-int		ft_is_cmd_or_file(t_type type);
-int		ft_count_redir(t_token *first, t_type type);
+int		ft_is_symbol(char c);
+int		ft_count_quotes(char *s);
+int		ft_in_squote(char *cmd, char *stop);
+int		ft_in_dquote(char *cmd, char *stop);
 
 int	ft_is_space(char c)
 {
@@ -24,35 +25,95 @@ int	ft_is_space(char c)
 	return (NO);
 }
 
-int	ft_len_until_match(char *input, char *match)
+int	ft_is_symbol(char c)
 {
-	int	i;
+	if (c == '\"' || c == '\'' || c == '@' || c == '*' || c == '!')
+		return (1);
+	else if (c == '.' || c == ',' || c == '+' || c == '%' || c == '='
+		|| c == '~' || c == '^' || c == '/')
+		return (2);
+	else
+		return (0);
+}
+
+int	ft_count_quotes(char *s)
+{
+	int		i;
+	int		n_quotes;
+	int		in_squote;
+	int		in_dquote;
 
 	i = 0;
-	while (input[i] && ft_strchr(match, input[i]) == NULL)
-		i++;
-	return (i);
-}
-
-int	ft_is_cmd_or_file(t_type type)
-{
-	if (type == T_OTHER || type == T_QUOTE || type == T_DQUOTE)
-		return (YES);
-	return (NO);
-}
-
-int	ft_count_redir(t_token *first, t_type type)
-{
-	int		n_redirs;
-	t_token	*curr;
-
-	n_redirs = 0;
-	curr = first;
-	while (curr && curr->type != T_PIPE)
+	n_quotes = 0;
+	in_squote = 0;
+	in_dquote = 0;
+	while (s[i])
 	{
-		if (curr->type == type)
-			n_redirs++;
-		curr = curr->next;
+		if (s[i] == '\'' && in_dquote == 0)
+		{
+			in_squote = 1 - in_squote;
+			n_quotes++;
+		}
+		else if (s[i] == '"' && in_squote == 0)
+		{
+			in_dquote = 1 - in_dquote;
+			n_quotes++;
+		}
+		i++;
 	}
-	return (n_redirs);
+	return (n_quotes);
+}
+
+int	ft_in_squote(char *cmd, char *stop)
+{
+	int		i;
+	int		n_squotes;
+	int		in_squote;
+	int		in_dquote;
+
+	i = 0;
+	n_squotes = 0;
+	in_squote = 0;
+	in_dquote = 0;
+	while (cmd[i] && &cmd[i] != stop)
+	{
+		if (cmd[i] == '\'' && in_dquote == 0)
+		{
+			in_squote = 1 - in_squote;
+			n_squotes++;
+		}
+		else if (cmd[i] == '"' && in_squote == 0)
+			in_dquote = 1 - in_dquote;
+		i++;
+	}
+	if (n_squotes % 2 == 0)
+		return (NO);
+	return (YES);
+}
+
+int	ft_in_dquote(char *cmd, char *stop)
+{
+	int		i;
+	int		n_dquotes;
+	int		in_squote;
+	int		in_dquote;
+
+	i = 0;
+	n_dquotes = 0;
+	in_squote = 0;
+	in_dquote = 0;
+	while (cmd[i] && &cmd[i] != stop)
+	{
+		if (cmd[i] == '"' && in_squote == 0)
+		{
+			in_dquote = 1 - in_dquote;
+			n_dquotes++;
+		}
+		else if (cmd[i] == '\'' && in_dquote == 0)
+			in_squote = 1 - in_squote;
+		i++;
+	}
+	if (n_dquotes % 2 == 0)
+		return (NO);
+	return (YES);
 }

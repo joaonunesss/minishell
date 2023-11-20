@@ -3,28 +3,23 @@
 /*                                                        :::      ::::::::   */
 /*   pwd.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:34:24 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/12 12:34:12 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/09 21:36:58 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-
-void	ft_pwd(t_minishell *ms)
+void	ft_pwd(t_minishell *ms, t_cmd *curr)
 {
-	char	cwd[200];
+	char	cwd[4096];
 
-	(void) ms;
-	if (!is_option_valid(ms))
-	{
-		g_exit_status = 2;
-		exit(g_exit_status); 
-	}
+	if (ft_cmd_has_valid_option(curr->args) == FALSE)
+		ft_free_all(ms, YES, YES);
 	if (getcwd(cwd, sizeof(cwd)))
 		printf("%s\n", cwd);
 	g_exit_status = 0;
-	exit(g_exit_status);
+	ft_free_all(ms, YES, YES);
 }

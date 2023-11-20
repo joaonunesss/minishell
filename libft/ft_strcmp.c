@@ -1,33 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   chdir_0.c                                          :+:      :+:    :+:   */
+/*   ft_strcmp.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/18 13:48:27 by ataboada          #+#    #+#             */
-/*   Updated: 2023/08/18 14:32:57 by ataboada         ###   ########.fr       */
+/*   Created: 2023/10/27 15:51:10 by ataboada          #+#    #+#             */
+/*   Updated: 2023/10/27 15:55:54 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "libft.h"
 
-/*
-	this is a file that will help with the understanding of getcwd
-	this is the function that will do what PWD does
-*/
-
-int main(void)
+/**
+ * @brief
+ * @param s1 String to be compared.
+ * @param s2 String to be compared.
+ * @return Returns 0 if strings are identical, otherwise returns the difference
+ * between the first two differing bytes.
+ */
+int	ft_strcmp(char *s1, char *s2)
 {
-	char *cwd = getcwd(NULL, 0);
-	if (cwd != NULL)
-		printf("Current Directory: %s\n", cwd);
-	else
-	{
-		perror("getcwd");
+	int	i;
+
+	i = 0;
+	if (!s1 && !s2)
+		return (0);
+	if (!s1 || !s2)
 		return (1);
+	while (s1[i] && s2[i])
+	{
+		if (s1[i] != s2[i])
+			break ;
+		i++;
 	}
-	free(cwd);
+	return (s1[i] - s2[i]);
 }

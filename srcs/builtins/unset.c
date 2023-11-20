@@ -3,78 +3,96 @@
 /*                                                        :::      ::::::::   */
 /*   unset.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmarinho <jmarinho@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ataboada <ataboada@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 09:36:01 by ataboada          #+#    #+#             */
-/*   Updated: 2023/10/18 16:12:49 by jmarinho         ###   ########.fr       */
+/*   Updated: 2023/11/11 17:06:19 by ataboada         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../minishell.h"
 
-int	ft_strcmp(t_minishell *ms, t_env *envi)
-{
-	int i;
-	
-	i = 0;
-	while (ms->cmd_lst->args[1][i] && envi->key[i] && (ms->cmd_lst->args[1][i] == envi->key[i]))
-		i++;
-	if(ms->cmd_lst->args[1][i] == '=')
-		i--;
-	return((unsigned char)ms->cmd_lst->args[1][i] - (unsigned char)envi->key[i]);
-} 
+void	ft_unset(t_minishell *ms, t_cmd *curr);
+void	ft_export_unset(t_minishell *ms, char *arg);
+void	ft_unset_unset(t_minishell *m, t_cmd *c, t_env *e, t_env *p);
 
-int	ft_unset(t_minishell *ms)
+void	ft_unset(t_minishell *ms, t_cmd *curr)
 {
-	int i;
-	t_env	*envi;
-	t_env	*prev;
+	int		i;
+	t_env	*e;
+	t_env	*p;
 
-	if(ms->cmd_lst->args[1] == NULL)
-	{
-		g_exit_status = 0;
-		return (g_exit_status);
-	}
-	if(is_there_redirections(ms) == TRUE)
-		exit(0);
-	if (!is_option_valid(ms))
-	{
-		g_exit_status = 2;
-		return (g_exit_status); 
-	}
 	i = 0;
-	while(ms->cmd_lst->args[1][i] != '=' && ms->cmd_lst->args[1][i])
+	e = ms->env_lst;
+	p = NULL;
+	if (curr->args[1] == NULL)
+		return (ft_builtin_error(ms, curr, NULL, 0));
+	if (!ft_cmd_has_valid_option(curr->args))
+		return (ft_builtin_error(ms, curr, NULL, 2));
+	while (curr->args[i])
 	{
-		if((!ft_isalpha(ms->cmd_lst->args[1][0]) || !ft_isalnum(ms->cmd_lst->args[1][i]))
-			&& !ft_strchr(ms->cmd_lst->args[1], '_'))
-		{
-			printf("minishell: %s: %s: not a valid identifier\n", ms->cmd_lst->args[0], ms->cmd_lst->args[1]);
-			g_exit_status = 1;
-			return (g_exit_status);
-		}
+		if (!ft_args_are_valid(curr->args[i], NO))
+			break ;
 		i++;
 	}
-	i = 0;
-	envi = ms->env_lst;
-	prev = NULL;
-	while(envi)
-	{
-		if (ft_strcmp(ms, envi) == 0)
-		{	
-			 if (prev == NULL)
-                ms->env_lst = envi->next;
-            else
-                prev->next = envi->next;
-			free(envi->key);
-			free(envi->value);
-			free(envi);
-			break;
-		}
-		prev = envi;
-        envi = envi->next;
-	}
+	ft_unset_unset(ms, curr, e, p);
 	g_exit_status = 0;
 	if (ms->n_pipes != 0)
-		exit(0);
-	return (g_exit_status);
+		ft_free_all(ms, YES, YES);
+}
+
+void	ft_unset_unset(t_minishell *m, t_cmd *c, t_env *e, t_env *p)
+{
+	int	i;
+
+	i = 0;
+	while (c->args[++i])
+	{
+		e = m->env_lst;
+		while (e)
+		{
+			if (!ft_strcmp(c->args[i], e->key))
+			{
+				if (c->args[i][0] == '=')
+					break ;
+				if (p == NULL)
+					m->env_lst = e->next;
+				else
+					p->next = e->next;
+				free(e->key);
+				free(e->value);
+				free(e);
+				break ;
+			}
+			p = e;
+			e = e->next;
+		}
+	}
+}
+
+void	ft_export_unset(t_minishell *ms, char *arg)
+{
+	t_env	*e;
+	t_env	*p;
+
+	e = ms->env_lst;
+	p = NULL;
+	while (e)
+	{
+		if (!strncmp(e->key, arg, ft_strlen(e->key)))
+		{
+			if (ft_strchr(arg, '=') == NULL && e->value)
+				break ;
+			if (p == NULL)
+				ms->env_lst = e->next;
+			else
+				p->next = e->next;
+			free(e->key);
+			free(e->value);
+			free(e);
+			break ;
+		}
+		p = e;
+		e = e->next;
+	}
 }
