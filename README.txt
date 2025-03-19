@@ -1,10 +1,1 @@
-Shell Implementation:
-
-1. Create a main loop with the readline function to have the shell prompt
-2. Start with the implementation of the parser
-3. The parser contains two parts:
-	a) Lexical Analysis / Tokenization - takes the input and breaks it down into individual tokens. it will also examine each token and classify it based on its role.
-	b) Syntactic Analysis - detects and reports syntax errors when the code violates the language's grammar rules.
-	c) Expansion - takes the built tokens and looks for $. If it finds it, performs the required expansions.
-	d) Command Table Creation - creates the final command table that will be used in the Executor.
-4. Command Execution
+Minishell project is a great exercise in system programming that teaches essential concepts like process management, memory handling, and file operations. It is crucial for understanding how operating systems interact with processes and how command-line interfaces work. This project provides a solid foundation in low-level programming and the inner workings of Unix-like systems.
